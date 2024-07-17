@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  line-height: normal;
+}
+
+:root {
+  /* fonts */
+  --portaluumedumy-arial-narrow-15: Lato;
+  --text: "Averia Gruesa Libre";
+
+  /* font sizes */
+  --portaluumedumy-arial-narrow-15-size: 16px;
+  --font-size-xl: 20px;
+  --text-size: 24px;
+
+  /* Colors */
+  --portaluumedumy-boulder: #757575;
+  --portaluumedumy-black-70: rgba(0, 0, 0, 0.7);
+  --portaluumedumy-nero: #fff;
+  --portaluumedumy-black: #ff0000;
+  --portaluumedumy-black-50: #000;
+  --portaluumedumy-diesel: #ffff00;
+  --portaluumedumy-mariner: #237bdb;
+
+  /* Paddings */
+  --padding-xl: 20px;
+  --padding-8xs: 5px;
+  --padding-6xs: 7px;
+  --padding-55xl: 74px;
+  --padding-129xl: 148px;
+  --padding-21xl: 40px;
+  --padding-62xl: 81px;
+  --padding-3xs: 10px;
+  --padding-10xs: 3px;
+  --padding-7xs: 6px;
+}
