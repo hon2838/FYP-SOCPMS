@@ -125,7 +125,8 @@
 .container1 {
   align-self: stretch;
   align-items: center;
-  padding: var(--padding-6xs) 13px var(--padding-6xs) var(--padding-10xs);
+  padding: var(--padding-6xs) var(--padding-smi) var(--padding-6xs)
+    var(--padding-10xs);
   gap: 10.2px;
   flex-shrink: 0;
 }
@@ -143,7 +144,7 @@
   padding: 0 0 var(--padding-3xs);
   max-width: 100%;
   flex-shrink: 0;
-  font-size: var(--font-size-xl);
+  font-size: var(--portal5uumedumy-roboto-regular-14-size);
   color: var(--portaluumedumy-boulder);
   font-family: var(--portaluumedumy-arial-narrow-15);
 }
@@ -155,7 +156,7 @@
   width: 1240px;
   align-items: flex-end;
   justify-content: flex-start;
-  padding: 11px 163px 12px;
+  padding: var(--padding-2xs) 163px var(--padding-xs);
   position: relative;
   gap: 582px;
   max-width: 1240px;
@@ -328,7 +329,7 @@
   align-self: stretch;
   background-color: var(--portaluumedumy-black-70);
   padding: var(--padding-xl) var(--padding-8xs);
-  gap: 15px;
+  gap: var(--gap-mini);
   flex-shrink: 0;
   max-width: 102%;
   z-index: 1;
@@ -386,7 +387,7 @@
 }
 @media screen and (max-width: 450px) {
   .paperwork-management-system-container {
-    font-size: 19px;
+    font-size: var(--font-size-lgi);
   }
   .container {
     gap: 73px;
