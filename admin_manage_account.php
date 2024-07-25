@@ -1,11 +1,32 @@
 <?php
-    session_start();
-    if (!isset($_SESSION['email']) && !isset($_SESSION['password']) && !isset($_SESSION['usertype']) && $_SESSION['usertype'] != "Admin") {
-        header('Location: index.php');
-        exit;
-    }
-
-    include 'dbconnect.php';
+   session_start();
+   if (!isset($_SESSION['email'])) {
+       header('Location: index.php');
+       exit;
+   }
+ 
+   // Include database connection
+   include 'dbconnect.php';
+ 
+   // Get user type based on email from database
+   $email = $_SESSION['email'];
+   $userQuery = "SELECT user_type FROM tbl_users WHERE email = ?";
+   $userStmt = $conn->prepare($userQuery);
+   $userStmt->execute([$email]);
+   $userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
+ 
+   if ($userResult) {
+       $user_type = $userResult['user_type'];
+       if ($user_type != "admin") {
+           header('Location: index.php');
+           exit;
+       }
+   } else {
+       // If no user is found, redirect to index
+       header('Location: index.php');
+       exit;
+   }
+ 
     $sqlloadpatients = "SELECT * FROM tbl_users";
     $stmt = $conn->prepare($sqlloadpatients);
     $stmt->execute();
@@ -118,7 +139,6 @@
                         <th scope="col">Staff ID</th>
                         <th scope="col">Name</th>
                         <th scope="col">Email</th>
-                        <th scope="col">Password</th>
                         <th scope="col">User Type</th>
                         <th scope="col">Action</th>
                       </tr>
@@ -129,16 +149,10 @@
                             <th scope="row"><?php echo $row['id']; ?></th>
                             <td><?php echo $row['name']; ?></td>
                             <td><?php echo $row['email']; ?></td>
-                            <td>
-                              <div class="input-group">
-                                <input type="password" class="form-control" value="<?php echo $row['password']; ?>" readonly>
-                                <button class="btn btn-outline-secondary" type="button" id="showPasswordBtn">Show</button>
-                              </div>
-                            </td>
-                            <td><?php echo $row['usertype']; ?></td>
+                            <td><?php echo $row['user_type']; ?></td>
                             <td>
                               <a href="admin_manage_account.php?submit=delete&id=<?php echo $row['id']; ?>" class="btn btn-danger">Delete</a>
-                              <button type="button" class="btn btn-primary editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="<?php echo $row['id']; ?>" data-name="<?php echo $row['name']; ?>" data-email="<?php echo $row['email']; ?>" data-usertype="<?php echo $row['usertype']; ?>">Edit</button>
+                              <button type="button" class="btn btn-primary editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="<?php echo $row['id']; ?>" data-name="<?php echo $row['name']; ?>" data-email="<?php echo $row['email']; ?>" data-user_type="<?php echo $row['user_type']; ?>">Edit</button>
                             </td>
                         </tr>
                       <?php } ?>
@@ -149,9 +163,9 @@
                                 <td><input type="email" name="email" required></td>
                                 <td><input type="password" name="password" required></td>
                                 <td>
-                                    <select name="usertype" required>
+                                    <select name="user_type" required>
                                         <option value="admin">Admin</option>
-                                        <option value="normal">Normal User</option>
+                                        <option value="user">User</option>
                                     </select>
                                 </td>
                                 <td><button type="submit" class="btn btn-success">Add User</button></td>
@@ -237,8 +251,8 @@
                               <input type="password" class="form-control" id="editUserPassword" name="password" required>
                           </div>
                           <div class="mb-3">
-                              <label for="editUserType" class="form-label">User Type</label>
-                              <select class="form-select" id="editUserType" name="usertype" required>
+                              <label for="edituser_type" class="form-label">User Type</label>
+                              <select class="form-select" id="edituser_type" name="user_type" required>
                                   <option value="admin">Admin</option>
                                   <option value="normal">Normal User</option>
                               </select>
@@ -266,12 +280,12 @@
               const userId = item.getAttribute('data-id');
               const userName = item.getAttribute('data-name');
               const userEmail = item.getAttribute('data-email');
-              const userType = item.getAttribute('data-usertype');
+              const user_type = item.getAttribute('data-user_type');
 
               document.getElementById('editUserId').value = userId;
               document.getElementById('editUserName').value = userName;
               document.getElementById('editUserEmail').value = userEmail;
-              document.getElementById('editUserType').value = userType;
+              document.getElementById('edituser_type').value = user_type;
           });
       });
       </script>

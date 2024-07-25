@@ -1,6 +1,6 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'admin')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'user')) {
       header('Location: index.php');
       exit;
     }
@@ -10,6 +10,25 @@
   
     // Get user type based on email from database
     $email = $_SESSION['email'];
+
+// Get user type based on email from database
+$email = $_SESSION['email'];
+$userQuery = "SELECT user_type FROM tbl_users WHERE email = ?";
+$userStmt = $conn->prepare($userQuery);
+$userStmt->execute([$email]);
+$userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+if ($userResult) {
+    $user_type = $userResult['user_type'];
+    if ($user_type != "admin") {
+        header('Location: index.php');
+        exit;
+    }
+} else {
+    // If no user is found, redirect to index
+    header('Location: index.php');
+    exit;
+}
 
 if (isset($_GET['ppw_id'])) {
     $ppw_id = $_GET['ppw_id'];
@@ -22,18 +41,7 @@ if (isset($_GET['ppw_id'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
-    $ppw_id = $_POST['ppw_id'];
-    $status = ($_POST['action'] == 'approve') ? 1 : 0;
 
-    $updateQuery = "UPDATE tbl_ppw SET status = ? WHERE ppw_id = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $stmt->execute([$status, $ppw_id]);
-
-    // Redirect or display a message
-    echo "<script>alert('Paperwork status updated.'); window.location.href='admin_dashboard.php';</script>";
-    exit;
-}
 
 ?>
 
@@ -55,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     </a>
 
     <ul class="nav nav-pills">
-        <li class="nav-item"><a href="admin_dashboard.php" class="nav-link">Home</a></li>
-        <li class="nav-item"><a href="create_paperwork.php" class="nav-link active" aria-current="page">Create New Paperwork</a></li>
-        <li class="nav-item"><a href="admin_manage_account.php" class="nav-link">Manage Account</a></li>
+        <li class="nav-item"><a href="user_dashboard.php" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="create_paperwork_user.php" class="nav-link active" aria-current="page">Create New Paperwork</a></li>
+        <li class="nav-item"><a href="user_manage_account.php" class="nav-link">Manage Account</a></li>
         <li class="nav-item"><a href="#" data-bs-toggle="modal" data-bs-target="#modal1" class="nav-link">About</a></li>
         <li class="nav-item"><a href="logout.php" class="nav-link">Logout</a></li>
     </ul>
@@ -170,10 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
                 <input type="number" class="form-control" id="english_lang_req" name="english_lang_req" value="<?php echo htmlspecialchars($paperwork['english_lang_req']); ?>" readonly required>
             </div>
         </div>
-
-        <input type="hidden" name="ppw_id" value="<?php echo htmlspecialchars($paperwork['ppw_id']); ?>">
-        <button type="submit" name="action" value="approve" class="btn btn-primary mb-2 mr-2">Approve</button>
-        <button type="submit" name="action" value="not_approve" class="btn btn-danger mb-2">Not Approved</button>
     </form>
 
 

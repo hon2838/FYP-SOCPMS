@@ -1,9 +1,15 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'admin')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'user')) {
       header('Location: index.php');
       exit;
     }
+  
+    // Include database connection
+    include 'dbconnect.php';
+  
+    // Get user type based on email from database
+    $email = $_SESSION['email'];
   
     // Include database connection
     include 'dbconnect.php';
@@ -100,9 +106,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </a>
 
     <ul class="nav nav-pills">
-        <li class="nav-item"><a href="admin_dashboard.php" class="nav-link">Home</a></li>
-        <li class="nav-item"><a href="create_paperwork.php" class="nav-link active" aria-current="page">Create New Paperwork</a></li>
-        <li class="nav-item"><a href="admin_manage_account.php" class="nav-link">Manage Account</a></li>
+        <li class="nav-item"><a href="user_dashboard.php" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="create_paperwork_user.php" class="nav-link active" aria-current="page">Create New Paperwork</a></li>
+        <li class="nav-item"><a href="user_manage_account.php" class="nav-link">Manage Account</a></li>
         <li class="nav-item"><a href="#" data-bs-toggle="modal" data-bs-target="#modal1" class="nav-link">About</a></li>
         <li class="nav-item"><a href="logout.php" class="nav-link">Logout</a></li>
     </ul>

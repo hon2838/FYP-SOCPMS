@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   // Check input errors before processing the database query
   if (empty($email_err) && empty($password_err)) {
     // Prepare a select statement
-    $sql = "SELECT id, email, password, usertype FROM tbl_users WHERE email = ?";
+    $sql = "SELECT id, email, password, user_type FROM tbl_users WHERE email = ?";
     if ($stmt = $conn->prepare($sql)) {
         // Bind variables to the prepared statement as parameters
         $stmt->bindParam(1, $param_email); // Use bindParam for PDO and change to $param_email
@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               $id = $row['id'];
               $fetched_email = $row['email'];
               $hashed_password = $row['password'];
-              $usertype = $row['usertype'];
+              $usertype = $row['user_type'];
               
               if (password_verify($password, $hashed_password)) {
                   // Password is correct, start a new session
@@ -48,12 +48,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                   $_SESSION['loggedin'] = true;
                   $_SESSION['id'] = $id;
                   $_SESSION['email'] = $fetched_email;
-                  $_SESSION['usertype'] = $usertype;
+                  $_SESSION['user_type'] = $user_type;
                   // Redirect user based on usertype
-                  if ($usertype == 1) {
-                      header("location: admin_dashboard.php");
+                  if ($user_type == 'admin') {
+                      header('location: admin_dashboard.php');
                   } else 
-                      header("location: user_dashboard.php");
+                      header('location: user_dashboard.php');
                   
               } else {
                   // Display an error message if password is not valid
