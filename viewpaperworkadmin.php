@@ -1,16 +1,14 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'admin')) {
-      header('Location: index.php');
-      exit;
-    }
-  
-    // Include database connection
-    include 'dbconnect.php';
-  
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
+session_start();
+if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
+    header('Location: index.php');
+    exit;
+}
 
+// Include database connection
+include 'dbconnect.php';
+
+// Check if ppw_id is provided via GET
 if (isset($_GET['ppw_id'])) {
     $ppw_id = $_GET['ppw_id'];
     $sql = "SELECT * FROM tbl_ppwfull WHERE ppw_id = ?";
@@ -22,6 +20,7 @@ if (isset($_GET['ppw_id'])) {
     exit;
 }
 
+// Handle POST request for approving/disapproving paperwork
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     $ppw_id = $_POST['ppw_id'];
     $status = ($_POST['action'] == 'approve') ? 1 : 0;
@@ -34,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     echo "<script>alert('Paperwork status updated.'); window.location.href='admin_dashboard.php';</script>";
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -51,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
 <body>
 <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom" style="background-color: #f5f5f5;">
     <a href="main.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-      <span class="fs-4 ms-4">SOC Paperwork Management System</span>
+        <span class="fs-4 ms-4">SOC Paperwork Management System</span>
     </a>
 
     <ul class="nav nav-pills">
@@ -67,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     <div class="row">
         <div>
             <h2>Create a New Paperwork</h2>
-            <p>Please fill out the form below to create a new paperwork.</p>   
+            <p>Please fill out the form below to create a new paperwork.</p>
         </div>
     </div>
 </div>
@@ -175,21 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
         <button type="submit" name="action" value="approve" class="btn btn-primary mb-2 mr-2">Approve</button>
         <button type="submit" name="action" value="not_approve" class="btn btn-danger mb-2">Not Approved</button>
     </form>
-
-
 </div>
-
-<div class ="container">
-    <?php
-    if ($user_type == "admin") {
-        echo '<a href="admin_dashboard.php" class="btn btn-primary mb-3">Back to Dashboard</a>';
-    } else {
-        echo '<a href="user_dashboard.php" class="btn btn-primary mb-3">Back to Dashboard</a>';
-    }
-    ?>
-</div>
-
 </body>
-
-
 </html>

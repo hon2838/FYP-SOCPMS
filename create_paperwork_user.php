@@ -1,10 +1,9 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'user')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
       header('Location: index.php');
       exit;
     }
-  
     // Include database connection
     include 'dbconnect.php';
   
@@ -124,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <div class="container">
-    <form action="create_paperwork.php" method="post">
+    <form action="create_paperwork_user.php" method="post">
         <div class="row mb-3">
             <label for="name" class="col-sm-3 col-form-label">Name:</label>
             <div class="col-sm-9">

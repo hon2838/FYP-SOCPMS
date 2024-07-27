@@ -133,7 +133,7 @@
             <div class="row">
               <div>
                 <h2>Accounts</h2>
-                <table class="table table-striped table-bordered table-hover d-none d-md-block">
+                <table class="table table-striped table-bordered table-hover">
                     <thead>
                       <tr>
                         <th scope="col">Staff ID</th>
@@ -157,36 +157,17 @@
                         </tr>
                       <?php } ?>
                         <tr>
-                            <form action="add_user.php" method="post">
-                                <td>#</td>
-                                <td><input type="text" name="name" required></td>
-                                <td><input type="email" name="email" required></td>
-                                <td><input type="password" name="password" required></td>
-                                <td>
-                                    <select name="user_type" required>
-                                        <option value="admin">Admin</option>
-                                        <option value="user">User</option>
-                                    </select>
-                                </td>
-                                <td><button type="submit" class="btn btn-success">Add User</button></td>
+                            
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button></td>
                             </form>
                         </tr>
                     </tbody>
                 </table>
 
-                
-                    <div class="row d-block d-sm-block d-md-none">
-                      <?php foreach ($rows as $row) { ?>
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                              <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['u_id']; ?></h5>
-                                <p class="card-text"><?php echo $row['u_Name']; ?></p>
-                              </div>
-                            </div>
-                        </div>
-                      <?php } ?>
-                    </div>
               </div>
             </div>
         </div>
@@ -226,46 +207,88 @@
                 </div>
             </div>
         </div>
-      
+
         <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-              <div class="modal-content">
-                  <form action="edit_user.php" method="post">
-                      <div class="modal-header">
-                          <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                          <!-- Hidden input to store user ID -->
-                          <input type="hidden" name="id" id="editUserId">
-                          <div class="mb-3">
-                              <label for="editUserName" class="form-label">Name</label>
-                              <input type="text" class="form-control" id="editUserName" name="name" required>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="edit_user.php" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Hidden input to store user ID -->
+                            <input type="hidden" name="id" id="editUserId">
+                            <div class="mb-3">
+                                <label for="editUserName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="editUserName" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editUserEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editUserEmail" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editUserPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="editUserPassword" name="password">
+                                <small class="form-text text-muted">Leave blank to keep the current password.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edituser_type" class="form-label">User Type</label>
+                                <select class="form-select" id="edituser_type" name="user_type" required>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">Normal User</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+      
+          <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                      <form action="add_user.php" method="post">
+                          <div class="modal-header">
+                              <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                           </div>
-                          <div class="mb-3">
-                              <label for="editUserEmail" class="form-label">Email</label>
-                              <input type="email" class="form-control" id="editUserEmail" name="email" required>
+                          <div class="modal-body">
+                              <div class="mb-3">
+                                  <label for="addUserName" class="form-label">Name</label>
+                                  <input type="text" class="form-control" id="addUserName" name="name" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="addUserEmail" class="form-label">Email</label>
+                                  <input type="email" class="form-control" id="addUserEmail" name="email" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="addUserPassword" class="form-label">Password</label>
+                                  <input type="password" class="form-control" id="addUserPassword" name="password" required>
+                              </div>
+                              <div class="mb-3">
+                                  <label for="addUserType" class="form-label">User Type</label>
+                                  <select class="form-select" id="addUserType" name="user_type" required>
+                                      <option value="admin">Admin</option>
+                                      <option value="user">Normal User</option>
+                                  </select>
+                              </div>
                           </div>
-                          <div class="mb-3">
-                              <label for="editUserPassword" class="form-label">Password</label>
-                              <input type="password" class="form-control" id="editUserPassword" name="password" required>
+                          <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              <button type="submit" class="btn btn-primary">Add User</button>
                           </div>
-                          <div class="mb-3">
-                              <label for="edituser_type" class="form-label">User Type</label>
-                              <select class="form-select" id="edituser_type" name="user_type" required>
-                                  <option value="admin">Admin</option>
-                                  <option value="normal">Normal User</option>
-                              </select>
-                          </div>
-                      </div>
-                      <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          <button type="submit" class="btn btn-primary">Save Changes</button>
-                      </div>
-                  </form>
+                      </form>
+                  </div>
               </div>
           </div>
-      </div>
+
+
 
 
 

@@ -1,6 +1,6 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'admin')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
       header('Location: index.php');
       exit;
     }
@@ -10,6 +10,7 @@
   
     // Get user type based on email from database
     $email = $_SESSION['email'];
+
 // Load patients
 $sqlloadpatients = "SELECT * FROM tbl_ppw";
 $stmt = $conn->prepare($sqlloadpatients);

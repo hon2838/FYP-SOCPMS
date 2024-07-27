@@ -1,10 +1,9 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'admin')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
       header('Location: index.php');
       exit;
     }
-  
     // Include database connection
     include 'dbconnect.php';
   

@@ -1,6 +1,6 @@
 <?php
     session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] != 'user')) {
+    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
       header('Location: index.php');
       exit;
     }
