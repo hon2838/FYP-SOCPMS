@@ -102,17 +102,132 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
                     <form action="viewpaperworkadmin.php" method="post" class="needs-validation" novalidate>
                         <!-- Form fields with modern styling -->
                         <div class="row mb-4">
-                            <label class="col-sm-3 col-form-label fw-medium">Name:</label>
+                            <label for="ppw_type" class="col-sm-3 col-form-label fw-medium">Paperwork Type:</label>
                             <div class="col-sm-9">
                                 <input type="text" 
                                     class="form-control form-control-lg shadow-sm" 
-                                    value="<?php echo htmlspecialchars($paperwork['name']); ?>" 
+                                    id="ppw_type" 
+                                    name="ppw_type" 
+                                    value="<?php echo htmlspecialchars($paperwork['ppw_type']); ?>" 
                                     readonly>
                             </div>
                         </div>
 
-                        <!-- Add similar styling to all other form fields -->
+                        <div class="row mb-4">
+                            <label for="session" class="col-sm-3 col-form-label fw-medium">Session:</label>
+                            <div class="col-sm-9">
+                                <input type="text" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="session" 
+                                    name="session" 
+                                    value="<?php echo htmlspecialchars($paperwork['session']); ?>" 
+                                    readonly>
+                            </div>
+                        </div>
 
+                        <div class="row mb-4">
+                            <label for="project_name" class="col-sm-3 col-form-label fw-medium">Paperwork Name:</label>
+                            <div class="col-sm-9">
+                                <input type="text" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="project_name" 
+                                    name="project_name" 
+                                    value="<?php echo htmlspecialchars($paperwork['project_name']); ?>" 
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <label for="objective" class="col-sm-3 col-form-label fw-medium">Objective:</label>
+                            <div class="col-sm-9">
+                                <textarea 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="objective" 
+                                    name="objective" 
+                                    rows="4" 
+                                    readonly><?php echo htmlspecialchars($paperwork['objective']); ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <label for="purpose" class="col-sm-3 col-form-label fw-medium">Purpose:</label>
+                            <div class="col-sm-9">
+                                <textarea 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="purpose" 
+                                    name="purpose" 
+                                    rows="4" 
+                                    readonly><?php echo htmlspecialchars($paperwork['purpose']); ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <label for="background" class="col-sm-3 col-form-label fw-medium">Background:</label>
+                            <div class="col-sm-9">
+                                <textarea 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="background" 
+                                    name="background" 
+                                    rows="4" 
+                                    readonly><?php echo htmlspecialchars($paperwork['background']); ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <label for="aim" class="col-sm-3 col-form-label fw-medium">Aim:</label>
+                            <div class="col-sm-9">
+                                <textarea 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="aim" 
+                                    name="aim" 
+                                    rows="4" 
+                                    readonly><?php echo htmlspecialchars($paperwork['aim']); ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="startdate" class="form-label fw-medium">Start Date:</label>
+                                <input type="text" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="startdate" 
+                                    name="startdate" 
+                                    value="<?php echo htmlspecialchars($paperwork['startdate']); ?>"
+                                    readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end_date" class="form-label fw-medium">End Date:</label>
+                                <input type="text" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="end_date" 
+                                    name="end_date" 
+                                    value="<?php echo htmlspecialchars($paperwork['end_date']); ?>"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="pgrm_involve" class="form-label fw-medium">Program Involve:</label>
+                                <input type="number" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="pgrm_involve" 
+                                    name="pgrm_involve" 
+                                    value="<?php echo htmlspecialchars($paperwork['pgrm_involve']); ?>"
+                                    readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="external_sponsor" class="form-label fw-medium">External Sponsor:</label>
+                                <input type="number" 
+                                    class="form-control form-control-lg shadow-sm" 
+                                    id="external_sponsor" 
+                                    name="external_sponsor" 
+                                    value="<?php echo htmlspecialchars($paperwork['external_sponsor']); ?>"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <!-- Approval Buttons -->
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <input type="hidden" name="ppw_id" value="<?php echo htmlspecialchars($paperwork['ppw_id']); ?>">
                             <button type="submit" name="action" value="approve" class="btn btn-success">

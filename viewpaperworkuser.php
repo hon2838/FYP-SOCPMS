@@ -1,34 +1,17 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
-      header('Location: index.php');
-      exit;
-    }
-    // Include database connection
-    include 'dbconnect.php';
-  
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
-
-// Get user type based on email from database
-$email = $_SESSION['email'];
-$userQuery = "SELECT user_type FROM tbl_users WHERE email = ?";
-$userStmt = $conn->prepare($userQuery);
-$userStmt->execute([$email]);
-$userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-if ($userResult) {
-    $user_type = $userResult['user_type'];
-    if ($user_type != "admin") {
-        header('Location: index.php');
-        exit;
-    }
-} else {
-    // If no user is found, redirect to index
+session_start();
+if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
     header('Location: index.php');
     exit;
 }
 
+// Include database connection
+include 'dbconnect.php';
+
+// Get user type based on email from database
+$email = $_SESSION['email'];
+
+// Check if ppw_id is provided
 if (isset($_GET['ppw_id'])) {
     $ppw_id = $_GET['ppw_id'];
     $sql = "SELECT * FROM tbl_ppwfull WHERE ppw_id = ?";

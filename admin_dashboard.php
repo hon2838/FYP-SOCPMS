@@ -12,11 +12,10 @@
     $email = $_SESSION['email'];
 
 // Load patients
-$sqlloadpatients = "SELECT * FROM tbl_ppw";
+$sqlloadpatients = "SELECT * FROM tbl_ppw ORDER BY submission_time DESC";
 $stmt = $conn->prepare($sqlloadpatients);
 $stmt->execute();
-$results = $stmt->setFetchMode(PDO::FETCH_ASSOC);
-$rows = $stmt->fetchAll();
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle delete request
 if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
@@ -170,19 +169,26 @@ $rows = $stmt->fetchAll();
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Your PHP foreach loop here -->
-                                <tr>
-                                    <td class="px-4"><?php echo $row['ppw_id']; ?></td>
-                                    <td class="px-4"><?php echo $row['name']; ?></td>
-                                    <td class="px-4"><?php echo $row['id']; ?></td>
-                                    <td class="px-4"><?php echo $row['session']; ?></td>
-                                    <td class="px-4">
-                                        <a href="viewpaperworkadmin.php?ppw_id=<?php echo $row['ppw_id']; ?>" 
-                                           class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye me-1"></i> View
-                                        </a>
-                                    </td>
-                                </tr>
+                                <?php if (!empty($rows)): ?>
+                                    <?php foreach ($rows as $row): ?>
+                                        <tr>
+                                            <td class="px-4"><?php echo htmlspecialchars($row['ppw_id']); ?></td>
+                                            <td class="px-4"><?php echo htmlspecialchars($row['name']); ?></td>
+                                            <td class="px-4"><?php echo htmlspecialchars($row['id']); ?></td>
+                                            <td class="px-4"><?php echo htmlspecialchars($row['session']); ?></td>
+                                            <td class="px-4">
+                                                <a href="viewpaperworkadmin.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">No paperworks found.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
