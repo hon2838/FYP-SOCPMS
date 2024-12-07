@@ -82,44 +82,111 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SOCPMS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    
-  <body>
-    <div class="d-lg-flex half">
-      <div class="bg order-1 order-md-2" style="background-image: url('login-bg.png');"></div>
-      <div class="contents order-2 order-md-1">
+</head>
+<body class="bg-light">
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-          <div class="row align-items-center justify-content-center">
-            <div class="col-md-7">
-            <h3>Login to <strong>SOC-PMS</strong></h3>
-            <p class="mb-4">Login with your email and password into School of Computing Paperwork Management System.</p>
-            <form action="index.php" method="post">
-              <div class="form-group first">
-                <label for="email">Email</label>
-                <input type="text" class="form-control" placeholder="your-email@gmail.com" id="email" name="email">
-              </div>
-              <div class="form-group last mb-3 mt-3">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" placeholder="Your Password" id="password" name="password">
-              <input type="submit" value="Log In" class="btn btn-block btn-primary mt-3">
-            </form>
-            <span class="d-block text-left my-4 text-muted">Not registered? <a href="register.php">Create an account</a></span>
-          </div>
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <i class="fas fa-file-alt text-primary me-2"></i>
+                <span class="fw-bold">SOC Paperwork System</span>
+            </a>
         </div>
-      </div>
+    </nav>
+
+    <!-- Login Section -->
+    <div class="d-lg-flex min-vh-100">
+        <div class="bg order-1 order-md-2 d-none d-md-block w-50" 
+             style="background-image: url('login-bg.png'); background-size: cover; background-position: center;">
+        </div>
+        <div class="contents order-2 order-md-1 w-50">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4 p-md-5">
+                                <h3 class="fw-bold mb-2">Welcome Back</h3>
+                                <p class="text-muted mb-4">Please log in to your account</p>
+                                
+                                <form action="index.php" method="post" class="needs-validation" novalidate>
+                                    <div class="mb-4">
+                                        <label for="email" class="form-label fw-medium">Email Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="fas fa-envelope text-muted"></i>
+                                            </span>
+                                            <input type="email" 
+                                                   class="form-control form-control-lg border-start-0 ps-0" 
+                                                   id="email" 
+                                                   name="email" 
+                                                   placeholder="Enter your email"
+                                                   required>
+                                        </div>
+                                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="password" class="form-label fw-medium">Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0">
+                                                <i class="fas fa-lock text-muted"></i>
+                                            </span>
+                                            <input type="password" 
+                                                   class="form-control form-control-lg border-start-0 ps-0" 
+                                                   id="password" 
+                                                   name="password" 
+                                                   placeholder="Enter your password"
+                                                   required>
+                                        </div>
+                                        <div class="invalid-feedback">Please enter your password.</div>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-sign-in-alt me-2"></i>
+                                            Sign In
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="text-center mt-4">
+                                    <p class="text-muted mb-0">
+                                        Don't have an account? 
+                                        <a href="register.php" class="text-primary fw-medium">Register</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Form Validation Script -->
+    <script>
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+    </script>
 </body>
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  </body>
 </html>

@@ -71,114 +71,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOC Paperwork Management System</title>
-    <link rel="stylesheet" href="mystyle.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
-<header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom" style="background-color: #f5f5f5;">
-    <a href="main.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-      <span class="fs-4 ms-4">SOC Paperwork Management System</span>
-    </a>
-
-    <ul class="nav nav-pills">
-        <li class="nav-item"><a href="user_dashboard.php" class="nav-link">Home</a></li>
-        <li class="nav-item"><a href="create_paperwork_user.php" class="nav-link">Create New Paperwork</a></li>
-        <li class="nav-item"><a href="user_manage_account.php" class="nav-link active" aria-current="page">Manage Account</a></li>
-        <li class="nav-item"><a href="#" data-bs-toggle="modal" data-bs-target="#modal1" class="nav-link">About</a></li>
-        <li class="nav-item"><a href="logout.php" class="nav-link">Logout</a></li>
-    </ul>
-</header>
-
-<div class="container mb-2">
-    <div class="row">
-        <div>
-            <h2>Manage Account</h2>
-            <p>You can manage your account here.</p>   
+<body class="bg-light">
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="main.php">
+                <i class="fas fa-file-alt text-primary me-2"></i>
+                <span class="fw-bold">SOC Paperwork System</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="user_dashboard.php">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="create_paperwork_user.php">
+                            <i class="fas fa-plus me-1"></i> New Paperwork
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active px-3" href="user_manage_account.php">
+                            <i class="fas fa-users me-1"></i> Manage Account
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger px-3" href="logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-</div>
+    </nav>
 
-<div class="container">
-    <div class="row">
-        <div>
-            <h2>Accounts</h2>
-            <table class="table table-striped table-bordered table-hover d-none d-md-block">
-                <thead>
-                    <tr>
-                        <th scope="col">Staff ID</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">User Type</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($rows as $row) { ?>
-                    <tr>
-                        <th scope="row"><?php echo $row['id']; ?></th>
-                        <td><?php echo $row['name']; ?></td>
-                        <td><?php echo $row['email']; ?></td>
-                        <td><?php echo $row['user_type']; ?></td>
-                        <td>
-                            <button type="button" class="btn btn-primary editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="<?php echo $row['id']; ?>" data-name="<?php echo $row['name']; ?>" data-email="<?php echo $row['email']; ?>" data-usertype="<?php echo $row['user_type']; ?>">Edit</button>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+    <!-- Main Content with top margin to account for fixed navbar -->
+    <main class="pt-5 mt-5">
+        <!-- Welcome Section -->
+        <div class="container py-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title h4 mb-3">
+                        <i class="fas fa-users-cog text-primary me-2"></i>
+                        Manage Your Account
+                    </h2>
+                    <p class="card-text text-muted mb-0">
+                        View and manage your account details here.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-            <div class="row d-block d-sm-block d-md-none">
-                <?php foreach ($rows as $row) { ?>
-                <div class="col-md-6">
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title">Staff ID: <?php echo $row['id']; ?></h5>
-                            <p class="card-text">Name: <?php echo $row['name']; ?></p>
-                            <p class="card-text">Email: <?php echo $row['email']; ?></p>
-                            <p class="card-text">User Type: <?php echo $row['user_type']; ?></p>
-                        </div>
+        <!-- Account Table Section -->
+        <div class="container">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-circle text-primary me-2"></i>
+                            Account Details
+                        </h5>
                     </div>
                 </div>
-                <?php } ?>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3">Staff ID</th>
+                                    <th scope="col" class="px-4 py-3">Name</th>
+                                    <th scope="col" class="px-4 py-3">Email</th>
+                                    <th scope="col" class="px-4 py-3">User Type</th>
+                                    <th scope="col" class="px-4 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($rows as $row) { ?>
+                                    <tr>
+                                        <td class="px-4"><?php echo $row['id']; ?></td>
+                                        <td class="px-4"><?php echo $row['name']; ?></td>
+                                        <td class="px-4"><?php echo $row['email']; ?></td>
+                                        <td class="px-4"><?php echo $row['user_type']; ?></td>
+                                        <td class="px-4">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 mt-5 bg-white border-top">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2024 SOC Paperwork Management System</p>
+        </div>
+    </footer>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        About Us
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="text-muted mb-0">School of Computing Paperwork Management System is a web application that helps you to manage your paperworks.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="d-flex justify-content-center">
-    <?php for ($page=1; $page<=$number_of_pages; $page++) {
-        echo '<a href="main.php?pageno=' . $page . '" class="btn btn-primary">' . $page . '</a>';
-    } ?>
-</div>
-
-<footer>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <p class="text-center">School of Computing Paperwork Management System © 2024</p>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">About Us</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>School of Computing Paperwork Management System is a web application that helps you to manage your paperworks.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
