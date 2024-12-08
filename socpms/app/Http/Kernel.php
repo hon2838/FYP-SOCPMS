@@ -49,16 +49,14 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'check-role' => \App\Http\Middleware\CheckRole::class,
+        // Other middleware...
+        'check.role' => \App\Http\Middleware\CheckRole::class,
+    ];
+
+    protected $routeMiddleware = [
+        // ... other middleware ...
+        'role' => \App\Http\Middleware\CheckRole::class,
+        'check.role' => \App\Http\Middleware\CheckRole::class,
     ];
 
     public function bootstrap()

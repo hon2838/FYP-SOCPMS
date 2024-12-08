@@ -9,24 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string  $role
-     * @return mixed
-     */
     public function handle(Request $request, Closure $next, $role)
     {
-        Log::info('CheckRole middleware executing', [
-            'user' => Auth::check() ? Auth::id() : 'not authenticated',
+        Log::debug('CheckRole middleware executed', [
+            'user' => Auth::user(),
             'required_role' => $role,
-            'user_type' => Auth::check() ? Auth::user()->user_type : 'none',
-            'path' => $request->path()
+            'is_authenticated' => Auth::check(),
         ]);
 
-        if (!Auth::check() || Auth::user()->user_type !== $role) {
+        if (!Auth::check()) {
+            Log::warning('User not authenticated');
+            return redirect('/');
+        }
+
+        if (Auth::user()->user_type !== $role) {
+            Log::warning('User does not have required role', [
+                'user_type' => Auth::user()->user_type,
+                'required_role' => $role,
+            ]);
             return redirect('/');
         }
 
