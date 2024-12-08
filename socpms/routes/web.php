@@ -45,22 +45,22 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Admin routes
-    Route::middleware(['auth', 'check.role:admin'])->prefix('admin')->group(function () {
-        Route::get('/dashboard', [PaperworkController::class, 'adminDashboard'])->name('admin.dashboard');
-        Route::get('/manage-accounts', [UserController::class, 'index'])->name('admin.accounts');
+    // Admin routes using Gate 'can' directive
+    Route::middleware(['can:admin-access'])->prefix('admin')->group(function () {
+        Route::get('/dashboard', [PaperworkController::class, 'adminDashboard'])
+            ->name('admin.dashboard');
+        Route::get('/manage-accounts', [UserController::class, 'index'])
+            ->name('admin.accounts');
         Route::resource('users', UserController::class);
     });
 
-    // User routes
-    Route::middleware(['auth', 'check.role:user'])->group(function () {
-        Log::info('User route group accessed');
-        Route::get('/user/dashboard', [PaperworkController::class, 'userDashboard'])->name('user.dashboard');
-        Route::get('/account', [UserController::class, 'show'])->name('user.account');
+    // User routes with proper middleware
+    Route::middleware(['can:user-access'])->group(function () {
+        Route::get('/user/dashboard', [PaperworkController::class, 'userDashboard'])
+            ->name('user.dashboard');
+        Route::get('/account', [UserController::class, 'show'])
+            ->name('user.account');
     });
-
-    // Common routes
-    Route::resource('paperworks', PaperworkController::class);
 });
 
 
