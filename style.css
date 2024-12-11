@@ -3,6 +3,9 @@ body {
   font-family: 'Roboto', sans-serif;
   background-color: #f8f9fa;
   color: #212529;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 p {
@@ -243,6 +246,7 @@ h2 {
 main {
   padding-top: 6rem !important; /* Increased from default */
   margin-top: 1rem !important;
+  flex: 1 0 auto;
 }
 
 .navbar-brand {
@@ -562,4 +566,8 @@ textarea.form-control {
 
 .dropdown-divider {
     margin: 0.5rem 0;
+}
+
+footer {
+    flex-shrink: 0;
 }

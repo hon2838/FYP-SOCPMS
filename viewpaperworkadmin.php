@@ -7,6 +7,7 @@ if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['u
 
 include 'dbconnect.php';
 include 'includes/header.php';
+include 'includes/email_functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     $ppw_id = $_POST['ppw_id'];
@@ -34,6 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
         }
         $stmt = $conn->prepare($sql);
         $stmt->execute([$note, $current_time, $ppw_id]);
+
+        // Get CEO email
+        $ceoQuery = "SELECT email FROM tbl_users WHERE user_type = 'ceo' LIMIT 1";
+        $ceoStmt = $conn->prepare($ceoQuery);
+        $ceoStmt->execute();
+        $ceoEmail = $ceoStmt->fetchColumn();
+
+        if ($ceoEmail) {
+            sendCEONotificationEmail($ceoEmail, [
+                'ref_number' => $paperwork['ref_number'],
+                'project_name' => $paperwork['project_name'],
+                'hod_approval_date' => date('Y-m-d H:i:s')
+            ], $_SESSION['name']);
+        }
     } 
     elseif ($user_type == 'ceo') {
         if ($_POST['action'] == 'approve') {

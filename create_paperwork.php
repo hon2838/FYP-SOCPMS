@@ -7,6 +7,7 @@ if (!isset($_SESSION['email'])) {
 
 include 'dbconnect.php';
 include 'includes/header.php';
+include 'includes/email_functions.php';
 
 // Get user details
 $email = $_SESSION['email'];
@@ -47,12 +48,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         trim($_POST['ppw_type']),
         $fileName
     ])) {
+        // Get HOD email
+        $hodQuery = "SELECT email FROM tbl_users WHERE user_type = 'hod' AND department = ?";
+        $hodStmt = $conn->prepare($hodQuery);
+        $hodStmt->execute([$user['department']]);
+        $hodEmail = $hodStmt->fetchColumn();
+
+        // Send confirmation email to user
+        sendSubmissionEmail($_SESSION['email'], $_SESSION['name'], [
+            'ref_number' => $_POST['ref_number'],
+            'project_name' => $_POST['project_name'],
+            'submission_time' => date('Y-m-d H:i:s')
+        ]);
+
+        // Send notification to HOD
+        if ($hodEmail) {
+            sendHODNotificationEmail($hodEmail, $_SESSION['name'], [
+                'ref_number' => $_POST['ref_number'],
+                'project_name' => $_POST['project_name'],
+                'submission_time' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Redirect with success message
         $redirectPath = ($user['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php';
         echo "<script>alert('Paperwork created successfully.');</script>";
         echo "<script>window.location.href='" . $redirectPath . "';</script>";
     } else {
         echo "<script>alert('Error creating paperwork.');</script>";
     }
+
 }
 ?>
 
