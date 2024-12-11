@@ -58,7 +58,7 @@ if (isset($_GET['ppw_id'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="create_paperwork_user.php">
+                        <a class="nav-link px-3" href="create_paperwork.php">
                             <i class="fas fa-plus me-1"></i> New Paperwork
                         </a>
                     </li>

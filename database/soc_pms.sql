@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 07, 2024 at 03:41 PM
+-- Generation Time: Dec 11, 2024 at 04:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -32,53 +32,14 @@ CREATE TABLE `tbl_ppw` (
   `id` int(11) NOT NULL,
   `name` text NOT NULL,
   `session` varchar(255) NOT NULL,
-  `project_name` text NOT NULL,
+  `project_name` varchar(255) NOT NULL,
   `project_date` date NOT NULL,
   `submission_time` timestamp NULL DEFAULT current_timestamp(),
   `status` varchar(50) DEFAULT NULL,
-  `note` text DEFAULT NULL
+  `ref_number` varchar(50) NOT NULL,
+  `ppw_type` varchar(50) NOT NULL,
+  `document_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tbl_ppw`
---
-
-INSERT INTO `tbl_ppw` (`ppw_id`, `id`, `name`, `session`, `project_name`, `project_date`, `submission_time`, `status`, `note`) VALUES
-(1, 1, 'HON JUN YOON', '1', '1', '2024-07-16', '2024-07-25 13:34:46', NULL, NULL),
-(2, 2, 'matthew hon', '2', '2', '2024-07-23', '2024-07-26 03:08:37', NULL, NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `tbl_ppwfull`
---
-
-CREATE TABLE `tbl_ppwfull` (
-  `ppw_id` int(11) NOT NULL,
-  `id` int(11) NOT NULL,
-  `name` varchar(255) DEFAULT NULL,
-  `ppw_type` varchar(255) NOT NULL,
-  `session` varchar(255) NOT NULL,
-  `project_name` varchar(255) NOT NULL,
-  `objective` text NOT NULL,
-  `purpose` text NOT NULL,
-  `background` text NOT NULL,
-  `aim` text NOT NULL,
-  `startdate` date NOT NULL,
-  `end_date` date NOT NULL,
-  `pgrm_involve` int(11) NOT NULL,
-  `external_sponsor` int(11) NOT NULL,
-  `sponsor_name` varchar(255) DEFAULT NULL,
-  `english_lang_req` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tbl_ppwfull`
---
-
-INSERT INTO `tbl_ppwfull` (`ppw_id`, `id`, `name`, `ppw_type`, `session`, `project_name`, `objective`, `purpose`, `background`, `aim`, `startdate`, `end_date`, `pgrm_involve`, `external_sponsor`, `sponsor_name`, `english_lang_req`) VALUES
-(1, 1, 'HON JUN YOON', '1', '1', '1', '1', '1', '1', '1', '2024-07-16', '2024-07-24', 1, 1, '1', 1),
-(2, 5, 'matthew hon', '2', '2', '2', '2', '2', '2', '2', '2024-07-23', '2024-07-30', 2, 2, '2', 2);
 
 -- --------------------------------------------------------
 
@@ -116,13 +77,6 @@ ALTER TABLE `tbl_ppw`
   ADD KEY `id` (`id`);
 
 --
--- Indexes for table `tbl_ppwfull`
---
-ALTER TABLE `tbl_ppwfull`
-  ADD PRIMARY KEY (`ppw_id`),
-  ADD KEY `id` (`id`);
-
---
 -- Indexes for table `tbl_users`
 --
 ALTER TABLE `tbl_users`
@@ -136,12 +90,6 @@ ALTER TABLE `tbl_users`
 -- AUTO_INCREMENT for table `tbl_ppw`
 --
 ALTER TABLE `tbl_ppw`
-  MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `tbl_ppwfull`
---
-ALTER TABLE `tbl_ppwfull`
   MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
@@ -159,13 +107,6 @@ ALTER TABLE `tbl_users`
 --
 ALTER TABLE `tbl_ppw`
   ADD CONSTRAINT `tbl_ppw_ibfk_1` FOREIGN KEY (`id`) REFERENCES `tbl_users` (`id`);
-
---
--- Constraints for table `tbl_ppwfull`
---
-ALTER TABLE `tbl_ppwfull`
-  ADD CONSTRAINT `tbl_ppwfull_ibfk_1` FOREIGN KEY (`id`) REFERENCES `tbl_users` (`id`),
-  ADD CONSTRAINT `tbl_ppwfull_ibfk_2` FOREIGN KEY (`ppw_id`) REFERENCES `tbl_ppw` (`ppw_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

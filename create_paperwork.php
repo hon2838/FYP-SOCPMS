@@ -1,82 +1,56 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
-      header('Location: index.php');
-      exit;
-    }
-    // Include database connection
-    include 'dbconnect.php';
-  
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
-// Initialize $loggedInUserId
-$loggedInUserId = null;
-// Get user_id based on email from database
-$email = $_SESSION['email'] ?? ''; // Use null coalescing operator to avoid undefined index notice
-$userQuery = "SELECT id, name FROM tbl_users WHERE email = ?";
+session_start();
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php');
+    exit;
+}
+
+include 'dbconnect.php';
+
+// Get user details
+$email = $_SESSION['email'];
+$userQuery = "SELECT id, name, user_type FROM tbl_users WHERE email = ?";
 $userStmt = $conn->prepare($userQuery);
 $userStmt->execute([$email]);
-$userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
-if ($userResult) {
-    $loggedInUserId = $userResult['id']; // Use this user_id in your insert statement
-    $loggedInUserName = $userResult['name']; // Fetch and assign user's name
-} else {
-    $loggedInUserName = "Unknown User"; // Default value or handle error appropriately
-}
-// Fetch the maximum ppw_id from the database
-$ppwIdQuery = "SELECT MAX(ppw_id) as max_ppw_id FROM tbl_ppw";
-$ppwIdStmt = $conn->prepare($ppwIdQuery);
-$ppwIdStmt->execute();
-$ppwIdResult = $ppwIdStmt->fetch(PDO::FETCH_ASSOC);
-$newPpwId = $ppwIdResult ? $ppwIdResult['max_ppw_id'] + 1 : 1; // Increment the ppw_id or start from 1 if no records
-
-// Fetch the maximum id from tbl_ppw
-$idQuery = "SELECT MAX(id) as max_id FROM tbl_ppw";
-$idStmt = $conn->prepare($idQuery);
-$idStmt->execute();
-$idResult = $idStmt->fetch(PDO::FETCH_ASSOC);
-$newId = $idResult ? $idResult['max_id'] + 1 : 1; // Increment the id or start from 1 if no records
+$user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
-    $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-    $ppw_id = $newPpwId; // Use the new ppw_id generated above
-    $ppw_type = filter_input(INPUT_POST, 'ppw_type', FILTER_SANITIZE_STRING);
-    $session = filter_input(INPUT_POST, 'session', FILTER_SANITIZE_STRING);
-    $project_name = filter_input(INPUT_POST, 'project_name', FILTER_SANITIZE_STRING);
-    $objective = filter_input(INPUT_POST, 'objective', FILTER_SANITIZE_STRING);
-    $purpose = filter_input(INPUT_POST, 'purpose', FILTER_SANITIZE_STRING);
-    $background = filter_input(INPUT_POST, 'background', FILTER_SANITIZE_STRING);
-    $aim = filter_input(INPUT_POST, 'aim', FILTER_SANITIZE_STRING);
-    $startdate = filter_input(INPUT_POST, 'startdate', FILTER_SANITIZE_STRING); // Correctly capturing startdate
-    $enddate = filter_input(INPUT_POST, 'end_date', FILTER_SANITIZE_STRING);
-    $pgrm_involve = filter_input(INPUT_POST, 'pgrm_involve', FILTER_SANITIZE_NUMBER_INT);
-    $external_sponsor = filter_input(INPUT_POST, 'external_sponsor', FILTER_SANITIZE_NUMBER_INT);
-    $sponsor_name = filter_input(INPUT_POST, 'sponsor_name', FILTER_SANITIZE_STRING);
-    $english_lang_req = filter_input(INPUT_POST, 'english_lang_req', FILTER_SANITIZE_NUMBER_INT);
-    // Step 1: Insert into tbl_ppw
-    $sql1 = "INSERT INTO tbl_ppw (id, ppw_id, name, session, project_name, project_date) VALUES (?, ?, ?, ?, ?, ?)";
-    $stmt1 = $conn->prepare($sql1);
-    if ($stmt1->execute([$newId, $ppw_id, $name, $session, $project_name, $startdate])) {
-        // Step 2: Insert into tbl_ppwfull
-        $sql = "INSERT INTO tbl_ppwfull (id, name, ppw_id, ppw_type, session, project_name, objective, purpose, background, aim, startdate, end_date, pgrm_involve, external_sponsor, sponsor_name, english_lang_req) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        if ($stmt->execute([$id, $name, $ppw_id, $ppw_type, $session, $project_name, $objective, $purpose, $background, $aim, $startdate, $enddate, $pgrm_involve, $external_sponsor, $sponsor_name, $english_lang_req])) {
-            // Success: Both statements executed successfully
-            if ($_SESSION['usertype'] == "admin") {
-                echo "<script>alert('Paperwork created successfully.');</script>";
-                echo "<script>window.location.href='admin_dashboard.php';</script>";
-            } else {
-                echo "<script>alert('Paperwork created successfully.');</script>";
-                echo "<script>window.location.href='user_dashboard.php';</script>";
-            }
-        } else {
-            // Error handling for the second statement
-            echo "<script>alert('Error: Could not create paperwork in tbl_ppwfull.');</script>";
+    // File upload handling
+    $uploadDir = 'uploads/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    
+    $fileName = '';
+    if (isset($_FILES['document']) && $_FILES['document']['error'] == 0) {
+        $fileName = time() . '_' . basename($_FILES['document']['name']);
+        $filePath = $uploadDir . $fileName;
+        
+        if (!move_uploaded_file($_FILES['document']['tmp_name'], $filePath)) {
+            echo "<script>alert('Error uploading file.');</script>";
+            exit;
         }
+    }
+
+    // Insert into tbl_ppw
+    $sql = "INSERT INTO tbl_ppw (id, name, session, project_name, ref_number, ppw_type, project_date, document_path) 
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE(), ?)";
+            
+    $stmt = $conn->prepare($sql);
+    if ($stmt->execute([
+        $user['id'],
+        $user['name'],
+        trim($_POST['session']),
+        trim($_POST['project_name']),
+        trim($_POST['ref_number']),
+        trim($_POST['ppw_type']),
+        $fileName
+    ])) {
+        $redirectPath = ($user['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php';
+        echo "<script>alert('Paperwork created successfully.');</script>";
+        echo "<script>window.location.href='" . $redirectPath . "';</script>";
     } else {
-        // Error handling for the first statement
-        echo "<script>alert('Error: Could not create paperwork in tbl_ppw.');</script>";
+        echo "<script>alert('Error creating paperwork.');</script>";
     }
 }
 ?>
@@ -97,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Modern Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="main.php">
+            <a class="navbar-brand d-flex align-items-center" href="<?php echo $user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
                 <i class="fas fa-file-alt text-primary me-2"></i>
                 <span class="fw-bold">SOC Paperwork System</span>
             </a>
@@ -109,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_dashboard.php">
+                        <a class="nav-link px-3" href="<?php echo $user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
                             <i class="fas fa-home me-1"></i> Home
                         </a>
                     </li>
@@ -119,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_manage_account.php">
-                            <i class="fas fa-users me-1"></i> Manage Accounts
+                        <a class="nav-link px-3" href="<?php echo $user['user_type'] === 'admin' ? 'admin_manage_account.php' : 'user_manage_account.php'; ?>">
+                            <i class="fas fa-users me-1"></i> <?php echo $user['user_type'] === 'admin' ? 'Manage Accounts' : 'Manage Account'; ?>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -149,7 +123,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Create New Paperwork
             </h4>
 
-            <form action="create_paperwork.php" method="post" class="needs-validation" novalidate>
+            <form action="create_paperwork.php" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                <!-- Add these fields at the beginning of your form -->
+                <div class="row mb-4">
+                    <label for="ref_number" class="col-sm-3 col-form-label fw-medium">Reference Number:</label>
+                    <div class="col-sm-9">
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg shadow-sm" 
+                            id="ref_number" 
+                            name="ref_number" 
+                            placeholder="Enter paperwork reference number"
+                            required
+                        >
+                        <div class="invalid-feedback">Please enter a reference number.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <label for="ppw_name" class="col-sm-3 col-form-label fw-medium">Paperwork Name:</label>
+                    <div class="col-sm-9">
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg shadow-sm" 
+                            id="ppw_name" 
+                            name="ppw_name" 
+                            placeholder="Enter paperwork name"
+                            required
+                        >
+                        <div class="invalid-feedback">Please enter the paperwork name.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <label for="ppw_type" class="col-sm-3 col-form-label fw-medium">Paperwork Type:</label>
+                    <div class="col-sm-9">
+                        <select 
+                            class="form-select form-select-lg shadow-sm" 
+                            id="ppw_type" 
+                            name="ppw_type" 
+                            required
+                        >
+                            <option value="">Select paperwork type</option>
+                            <option value="Project Proposal">Project Proposal</option>
+                            <option value="Research Paper">Research Paper</option>
+                            <option value="Technical Report">Technical Report</option>
+                            <option value="Documentation">Documentation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a paperwork type.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <label for="document" class="col-sm-3 col-form-label fw-medium">Upload Document:</label>
+                    <div class="col-sm-9">
+                        <input 
+                            type="file" 
+                            class="form-control form-control-lg shadow-sm" 
+                            id="document" 
+                            name="document" 
+                            accept=".pdf,.doc,.docx"
+                            required
+                        >
+                        <div class="invalid-feedback">Please upload a document.</div>
+                        <small class="text-muted">Accepted formats: PDF, DOC, DOCX</small>
+                    </div>
+                </div>
+
                 <!-- Background Section -->
                 <div class="row mb-4">
                     <label for="background" class="col-sm-3 col-form-label fw-medium">Background:</label>
@@ -207,37 +248,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="invalid-feedback">Please select an end date.</div>
                     </div>
                 </div>
-
-                <!-- Program Details Section -->
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label for="pgrm_involve" class="form-label fw-medium">Program Involve:</label>
-                        <input 
-                            type="number" 
-                            class="form-control form-control-lg shadow-sm" 
-                            id="pgrm_involve" 
-                            name="pgrm_involve" 
-                            placeholder="Enter number of programs"
-                            required
-                            min="0"
-                        >
-                        <div class="invalid-feedback">Please enter the number of programs involved.</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="external_sponsor" class="form-label fw-medium">External Sponsor:</label>
-                        <input 
-                            type="number" 
-                            class="form-control form-control-lg shadow-sm" 
-                            id="external_sponsor" 
-                            name="external_sponsor" 
-                            placeholder="Enter number of sponsors"
-                            required
-                            min="0"
-                        >
-                        <div class="invalid-feedback">Please enter the number of external sponsors.</div>
-                    </div>
-                </div>
-
                 <!-- Submit Button -->
                 <div class="d-grid gap-2 mt-5">
                     <button type="submit" class="btn btn-primary btn-lg">
@@ -282,6 +292,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 event.preventDefault()
                 event.stopPropagation()
             }
+            
+            // Additional file validation
+            const fileInput = form.querySelector('#document');
+            if (fileInput.files.length > 0) {
+                const fileSize = fileInput.files[0].size / 1024 / 1024; // in MB
+                if (fileSize > 10) { // 10MB limit
+                    event.preventDefault();
+                    alert('File size must be less than 10MB');
+                }
+            }
+            
             form.classList.add('was-validated')
         }, false)
     })

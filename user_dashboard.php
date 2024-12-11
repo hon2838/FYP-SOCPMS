@@ -112,7 +112,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3" href="create_paperwork_user.php">
+                    <a class="nav-link px-3" href="create_paperwork.php">
                         <i class="fas fa-plus me-1"></i> New Paperwork
                     </a>
                 </li>
@@ -162,7 +162,7 @@
                     <i class="fas fa-clipboard-list text-primary me-2"></i>
                     Your Paperworks
                 </h5>
-                <a href="create_paperwork_user.php" class="btn btn-primary">
+                <a href="create_paperwork.php" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>
                     New Paperwork
                 </a>
