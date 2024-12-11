@@ -46,7 +46,7 @@ if (isset($_GET['ppw_id'])) {
     <!-- Modern Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="main.php">
+            <a class="navbar-brand d-flex align-items-center" href="<?php echo ($_SESSION['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
                 <i class="fas fa-file-alt text-primary me-2"></i>
                 <span class="fw-bold">SOC Paperwork System</span>
             </a>

@@ -1,6 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
+// Allow both admin and user access
+if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
     header('Location: index.php');
     exit;
 }
@@ -17,19 +18,28 @@ $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 // Get paperwork details
 if (isset($_GET['ppw_id'])) {
     $ppw_id = $_GET['ppw_id'];
-    $sql = "SELECT * FROM tbl_ppw WHERE ppw_id = ? AND id = ?";
+    // Allow admin to edit any paperwork, user can edit their own
+    $sql = $user['user_type'] === 'admin' 
+        ? "SELECT * FROM tbl_ppw WHERE ppw_id = ?" 
+        : "SELECT * FROM tbl_ppw WHERE ppw_id = ? AND id = ?";
+    
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$ppw_id, $user['id']]);
+    $params = $user['user_type'] === 'admin' ? [$ppw_id] : [$ppw_id, $user['id']];
+    $stmt->execute($params);
     $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$paperwork) {
-        echo "<script>alert('Paperwork not found or unauthorized.'); window.location.href='user_dashboard.php';</script>";
+        echo "<script>alert('Paperwork not found or unauthorized.'); window.location.href='" . 
+             ($user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php') . 
+             "';</script>";
         exit;
     }
 
     // Check if paperwork is already approved
     if ($paperwork['status'] == 1) {
-        echo "<script>alert('Cannot edit approved paperwork.'); window.location.href='user_dashboard.php';</script>";
+        echo "<script>alert('Cannot edit approved paperwork.'); window.location.href='" . 
+             ($user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php') . 
+             "';</script>";
         exit;
     }
 } else {
@@ -76,7 +86,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ppw_id,
         $user['id']
     ])) {
-        echo "<script>alert('Paperwork updated successfully.'); window.location.href='user_dashboard.php';</script>";
+        echo "<script>alert('Paperwork updated successfully.'); window.location.href='" . 
+             ($user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php') . 
+             "';</script>";
     } else {
         echo "<script>alert('Error updating paperwork.');</script>";
     }
@@ -95,6 +107,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body class="bg-light">
     <!-- Reuse the same navbar as create_paperwork.php -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="<?php echo $user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
+                <i class="fas fa-file-alt text-primary me-2"></i>
+                <span class="fw-bold">SOC Paperwork System</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="<?php echo $user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active px-3" href="create_paperwork.php">
+                            <i class="fas fa-plus me-1"></i> New Paperwork
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="<?php echo $user['user_type'] === 'admin' ? 'admin_manage_account.php' : 'user_manage_account.php'; ?>">
+                            <i class="fas fa-users me-1"></i> <?php echo $user['user_type'] === 'admin' ? 'Manage Accounts' : 'Manage Account'; ?>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger px-3" href="logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
     
     <main class="pt-5 mt-5">
         <div class="container py-5">
@@ -117,11 +171,81 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
                         </div>
 
-                        <!-- Other fields similar to create_paperwork.php but with values from $paperwork -->
-                        
+                        <!-- Paperwork Name -->
+                        <div class="row mb-4">
+                            <label for="project_name" class="col-sm-3 col-form-label fw-medium">Paperwork Name: <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control form-control-lg shadow-sm" 
+                                       id="project_name" name="project_name" 
+                                       value="<?php echo htmlspecialchars($paperwork['project_name']); ?>"
+                                       required>
+                                <div class="invalid-feedback">Please enter the paperwork name.</div>
+                            </div>
+                        </div>
+
+                        <!-- Paperwork Type -->
+                        <div class="row mb-4">
+                            <label for="ppw_type" class="col-sm-3 col-form-label fw-medium">Paperwork Type: <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <select class="form-select form-select-lg shadow-sm" id="ppw_type" name="ppw_type" required>
+                                    <option value="">Select paperwork type</option>
+                                    <option value="Project Proposal" <?php echo $paperwork['ppw_type'] == 'Project Proposal' ? 'selected' : ''; ?>>Project Proposal</option>
+                                    <option value="Research Paper" <?php echo $paperwork['ppw_type'] == 'Research Paper' ? 'selected' : ''; ?>>Research Paper</option>
+                                    <option value="Technical Report" <?php echo $paperwork['ppw_type'] == 'Technical Report' ? 'selected' : ''; ?>>Technical Report</option>
+                                    <option value="Documentation" <?php echo $paperwork['ppw_type'] == 'Documentation' ? 'selected' : ''; ?>>Documentation</option>
+                                    <option value="Other" <?php echo $paperwork['ppw_type'] == 'Other' ? 'selected' : ''; ?>>Other</option>
+                                </select>
+                                <div class="invalid-feedback">Please select a paperwork type.</div>
+                            </div>
+                        </div>
+
+                        <!-- Session -->
+                        <div class="row mb-4">
+                            <label for="session" class="col-sm-3 col-form-label fw-medium">Session: <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control form-control-lg shadow-sm" 
+                                       id="session" name="session" 
+                                       value="<?php echo htmlspecialchars($paperwork['session']); ?>"
+                                       required>
+                                <div class="invalid-feedback">Please enter the session.</div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="row mb-4">
+                            <label for="document" class="col-sm-3 col-form-label fw-medium">Document:</label>
+                            <div class="col-sm-9">
+                                <?php if (!empty($paperwork['document_path'])): ?>
+                                    <div class="mb-3">
+                                        <p class="mb-2">Current document:</p>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <a href="uploads/<?php echo htmlspecialchars($paperwork['document_path']); ?>" 
+                                               class="btn btn-outline-primary" 
+                                               target="_blank">
+                                                <i class="fas fa-file-alt me-2"></i>
+                                                <?php echo htmlspecialchars(substr($paperwork['document_path'], strpos($paperwork['document_path'], '_') + 1)); ?>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <p class="mb-2">Upload new document:</p>
+                                <input type="file" 
+                                       class="form-control form-control-lg shadow-sm" 
+                                       id="document" 
+                                       name="document" 
+                                       accept=".pdf,.doc,.docx">
+                                <div class="invalid-feedback">Please upload a document.</div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Accepted formats: PDF, DOC, DOCX. Leave empty to keep current document.
+                                </small>
+                            </div>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="d-flex justify-content-end gap-2 mt-5">
-                            <a href="user_dashboard.php" class="btn btn-light btn-lg px-4">Cancel</a>
+                            <a href="<?php echo $user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>" class="btn btn-light btn-lg px-4">Cancel</a>
                             <button type="submit" class="btn btn-primary btn-lg px-4">
                                 <i class="fas fa-save me-2"></i>Save Changes
                             </button>
