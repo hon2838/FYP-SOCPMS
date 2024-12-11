@@ -41,23 +41,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
               var_dump($row);
 
               if (password_verify($password, $hashed_password)) {
-                  // Password is correct, start a new session
-                  session_start();
+                  // Start session if not already started
+                  if (session_status() == PHP_SESSION_NONE) {
+                      session_start();
+                  }
+                  
                   // Store data in session variables
                   $_SESSION['loggedin'] = true;
                   $_SESSION['id'] = $id;
                   $_SESSION['email'] = $fetched_email;
-                  $_SESSION['user_type'] = $user['user_type'];
-                  $_SESSION['user_type'] = $user_type;
+                  $_SESSION['user_type'] = $user_type;  // Remove duplicate assignment
+                  
+                  // Debug log
+                  error_log("Session variables set: " . print_r($_SESSION, true));
+                  
                   // Redirect user based on usertype
                   if ($user_type == 'admin') {
                       header('location: admin_dashboard.php');
                   } else if ($user_type == 'user') {
                       header('location: user_dashboard.php');
-                  } else {
-                    echo '<script>alert("Invalid User Type: ' . htmlspecialchars($user_type) . '")</script>';
                   }
-                  
+                  exit;
               } else {
                   // Display an error message if password is not valid
                   $password_err = 'Invalid password.';

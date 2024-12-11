@@ -173,37 +173,44 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th scope="col" class="px-4 py-3">Staff ID</th>
+                            <th scope="col" class="px-4 py-3">Reference Number</th>
                             <th scope="col" class="px-4 py-3">Name</th>
+                            <th scope="col" class="px-4 py-3">Staff ID</th>
                             <th scope="col" class="px-4 py-3">Session</th>
-                            <th scope="col" class="px-4 py-3">Project Name</th>
-                            <th scope="col" class="px-4 py-3">Project Date</th>
-                            <th scope="col" class="px-4 py-3">Submission Time</th>
-                            <th scope="col" class="px-4 py-3">Status</th>
-                            <th scope="col" class="px-4 py-3">Note</th>
                             <th scope="col" class="px-4 py-3">Actions</th>
+                            <th scope="col" class="px-4 py-3">Note</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($rows as $row) { ?>
                             <tr>
-                                <td class="px-4"><?php echo $row['id']; ?></td>
-                                <td class="px-4"><?php echo $row['name']; ?></td>
-                                <td class="px-4"><?php echo $row['session']; ?></td>
-                                <td class="px-4"><?php echo $row['project_name']; ?></td>
-                                <td class="px-4"><?php echo $row['project_date']; ?></td>
-                                <td class="px-4"><?php echo $row['submission_time']; ?></td>
+                                <td class="px-4"><?php echo htmlspecialchars($row['ref_number']); ?></td>
+                                <td class="px-4"><?php echo htmlspecialchars($row['name']); ?></td>
+                                <td class="px-4"><?php echo htmlspecialchars($row['id']); ?></td>
+                                <td class="px-4"><?php echo htmlspecialchars($row['session']); ?></td>
+                                <td class="px-4">
+                                    <div class="btn-group" role="group">
+                                        <a href="viewpaperworkuser.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                        <a href="editpaperwork.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </a>
+                                        <?php if ($row['status'] != 1): // Only show delete if not approved ?>
+                                        <a href="user_dashboard.php?submit=delete&ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                           class="btn btn-sm btn-danger"
+                                           onclick="return confirm('Are you sure you want to delete this paperwork?');">
+                                            <i class="fas fa-trash me-1"></i> Delete
+                                        </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td class="px-4">
                                     <span class="badge <?php echo $row['status'] == 1 ? 'bg-success' : 'bg-warning'; ?>">
                                         <?php echo $row['status'] == 1 ? 'Approved' : 'Pending'; ?>
                                     </span>
-                                </td>
-                                <td class="px-4"><?php echo $row['note']; ?></td>
-                                <td class="px-4">
-                                    <a href="viewpaperworkuser.php?ppw_id=<?php echo $row['ppw_id']; ?>" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye me-1"></i> View
-                                    </a>
                                 </td>
                             </tr>
                         <?php } ?>

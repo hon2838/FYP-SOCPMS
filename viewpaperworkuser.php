@@ -14,10 +14,15 @@ $email = $_SESSION['email'];
 // Check if ppw_id is provided
 if (isset($_GET['ppw_id'])) {
     $ppw_id = $_GET['ppw_id'];
-    $sql = "SELECT * FROM tbl_ppwfull WHERE ppw_id = ?";
+    $sql = "SELECT * FROM tbl_ppw WHERE ppw_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$ppw_id]);
     $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$paperwork) {
+        echo "<script>alert('Paperwork not found.'); window.location.href='user_dashboard.php';</script>";
+        exit;
+    }
 } else {
     echo "<script>alert('No Paperwork ID provided.'); window.location.href='user_dashboard.php';</script>";
     exit;
@@ -165,6 +170,78 @@ if (isset($_GET['ppw_id'])) {
                                 readonly><?php echo htmlspecialchars($paperwork['background']); ?></textarea>
                         </div>
                     </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Reference Number:</label>
+                        <div class="col-sm-9">
+                            <input type="text" 
+                                class="form-control form-control-lg shadow-sm" 
+                                value="<?php echo htmlspecialchars($paperwork['ref_number']); ?>" 
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Paperwork Name:</label>
+                        <div class="col-sm-9">
+                            <input type="text" 
+                                class="form-control form-control-lg shadow-sm" 
+                                value="<?php echo htmlspecialchars($paperwork['project_name']); ?>" 
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Type:</label>
+                        <div class="col-sm-9">
+                            <input type="text" 
+                                class="form-control form-control-lg shadow-sm" 
+                                value="<?php echo htmlspecialchars($paperwork['ppw_type']); ?>" 
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Session:</label>
+                        <div class="col-sm-9">
+                            <input type="text" 
+                                class="form-control form-control-lg shadow-sm" 
+                                value="<?php echo htmlspecialchars($paperwork['session']); ?>" 
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Submission Date:</label>
+                        <div class="col-sm-9">
+                            <input type="text" 
+                                class="form-control form-control-lg shadow-sm" 
+                                value="<?php echo htmlspecialchars($paperwork['submission_time']); ?>" 
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Status:</label>
+                        <div class="col-sm-9">
+                            <span class="badge <?php echo $paperwork['status'] == 1 ? 'bg-success' : 'bg-warning'; ?>">
+                                <?php echo $paperwork['status'] == 1 ? 'Approved' : 'Pending'; ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <?php if ($paperwork['document_path']): ?>
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label fw-medium">Document:</label>
+                        <div class="col-sm-9">
+                            <a href="uploads/<?php echo htmlspecialchars($paperwork['document_path']); ?>" 
+                               class="btn btn-primary" 
+                               target="_blank">
+                                <i class="fas fa-download me-2"></i>Download Document
+                            </a>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <!-- Back Button -->
                     <div class="d-flex justify-content-end mt-4">

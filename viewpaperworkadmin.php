@@ -1,26 +1,12 @@
 <?php
 session_start();
-if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
+if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
     header('Location: index.php');
     exit;
 }
 
-// Include database connection
 include 'dbconnect.php';
 
-// Check if ppw_id is provided via GET
-if (isset($_GET['ppw_id'])) {
-    $ppw_id = $_GET['ppw_id'];
-    $sql = "SELECT * FROM tbl_ppwfull WHERE ppw_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$ppw_id]);
-    $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
-} else {
-    echo "<script>alert('No Paperwork ID provided.'); window.location.href='admin_dashboard.php';</script>";
-    exit;
-}
-
-// Handle POST request for approving/disapproving paperwork
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     $ppw_id = $_POST['ppw_id'];
     $status = ($_POST['action'] == 'approve') ? 1 : 0;
@@ -29,7 +15,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     $stmt = $conn->prepare($updateQuery);
     $stmt->execute([$status, $ppw_id]);
     
-    echo "<script>alert('Paperwork status updated.'); window.location.href='admin_dashboard.php';</script>";
+    echo "<script>alert('Status updated successfully.'); window.location.href='admin_dashboard.php';</script>";
+    exit;
+}
+
+if (isset($_GET['ppw_id'])) {
+    $ppw_id = $_GET['ppw_id'];
+    $sql = "SELECT p.*, u.name as submitted_by 
+            FROM tbl_ppw p 
+            JOIN tbl_users u ON p.id = u.id 
+            WHERE p.ppw_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$ppw_id]);
+    $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$paperwork) {
+        echo "<script>alert('Paperwork not found.'); window.location.href='admin_dashboard.php';</script>";
+        exit;
+    }
+} else {
+    echo "<script>alert('No Paperwork ID provided.'); window.location.href='admin_dashboard.php';</script>";
     exit;
 }
 ?>

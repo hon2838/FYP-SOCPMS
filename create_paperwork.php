@@ -125,14 +125,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <form action="create_paperwork.php" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
                 <!-- Add these fields at the beginning of your form -->
+                <!-- Reference Number -->
                 <div class="row mb-4">
-                    <label for="ref_number" class="col-sm-3 col-form-label fw-medium">Reference Number:</label>
+                    <label for="ref_number" class="col-sm-3 col-form-label fw-medium">Reference Number: <span class="text-danger">*</span></label>
                     <div class="col-sm-9">
                         <input 
                             type="text" 
                             class="form-control form-control-lg shadow-sm" 
                             id="ref_number" 
-                            name="ref_number" 
+                            name="ref_number"
                             placeholder="Enter paperwork reference number"
                             required
                         >
@@ -140,14 +141,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
+                <!-- Paperwork Name -->
                 <div class="row mb-4">
-                    <label for="ppw_name" class="col-sm-3 col-form-label fw-medium">Paperwork Name:</label>
+                    <label for="project_name" class="col-sm-3 col-form-label fw-medium">Paperwork Name: <span class="text-danger">*</span></label>
                     <div class="col-sm-9">
                         <input 
                             type="text" 
                             class="form-control form-control-lg shadow-sm" 
-                            id="ppw_name" 
-                            name="ppw_name" 
+                            id="project_name" 
+                            name="project_name"
                             placeholder="Enter paperwork name"
                             required
                         >
@@ -155,8 +157,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
+                <!-- Paperwork Type -->
                 <div class="row mb-4">
-                    <label for="ppw_type" class="col-sm-3 col-form-label fw-medium">Paperwork Type:</label>
+                    <label for="ppw_type" class="col-sm-3 col-form-label fw-medium">Paperwork Type: <span class="text-danger">*</span></label>
                     <div class="col-sm-9">
                         <select 
                             class="form-select form-select-lg shadow-sm" 
@@ -172,6 +175,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="Other">Other</option>
                         </select>
                         <div class="invalid-feedback">Please select a paperwork type.</div>
+                    </div>
+                </div>
+
+                <!-- Session -->
+                <div class="row mb-4">
+                    <label for="session" class="col-sm-3 col-form-label fw-medium">Session: <span class="text-danger">*</span></label>
+                    <div class="col-sm-9">
+                        <input 
+                            type="text" 
+                            class="form-control form-control-lg shadow-sm" 
+                            id="session" 
+                            name="session"
+                            placeholder="Enter session (e.g., 2024/2025)"
+                            required
+                        >
+                        <div class="invalid-feedback">Please enter the session.</div>
                     </div>
                 </div>
 

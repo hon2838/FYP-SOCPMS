@@ -1,9 +1,12 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
-      header('Location: index.php');
-      exit;
-    }
+session_start();
+error_log("Admin Dashboard Session: " . print_r($_SESSION, true));
+
+if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
+    error_log("Admin access denied: " . print_r($_SESSION, true));
+    header('Location: index.php');
+    exit;
+}
   
     // Include database connection
     include 'dbconnect.php';
@@ -161,32 +164,51 @@ $rows = $stmt->fetchAll();
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light">
                                 <tr>
-                                    <th scope="col" class="px-4 py-3">ID</th>
+                                    <th scope="col" class="px-4 py-3">Reference Number</th>
                                     <th scope="col" class="px-4 py-3">Name</th>
                                     <th scope="col" class="px-4 py-3">Staff ID</th>
                                     <th scope="col" class="px-4 py-3">Session</th>
                                     <th scope="col" class="px-4 py-3">Actions</th>
+                                    <th scope="col" class="px-4 py-3">Note</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (!empty($rows)): ?>
                                     <?php foreach ($rows as $row): ?>
                                         <tr>
-                                            <td class="px-4"><?php echo htmlspecialchars($row['ppw_id']); ?></td>
+                                            <td class="px-4"><?php echo htmlspecialchars($row['ref_number']); ?></td>
                                             <td class="px-4"><?php echo htmlspecialchars($row['name']); ?></td>
                                             <td class="px-4"><?php echo htmlspecialchars($row['id']); ?></td>
                                             <td class="px-4"><?php echo htmlspecialchars($row['session']); ?></td>
                                             <td class="px-4">
-                                                <a href="viewpaperworkadmin.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
-                                                   class="btn btn-sm btn-primary">
-                                                    <i class="fas fa-eye me-1"></i> View
-                                                </a>
+                                                <div class="btn-group" role="group">
+                                                    <a href="viewpaperworkuser.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                                       class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-eye me-1"></i> View
+                                                    </a>
+                                                    <a href="editpaperwork.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                                       class="btn btn-sm btn-warning">
+                                                        <i class="fas fa-edit me-1"></i> Edit
+                                                    </a>
+                                                    <?php if ($row['status'] != 1): // Only show delete if not approved ?>
+                                                    <a href="user_dashboard.php?submit=delete&ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                                       class="btn btn-sm btn-danger"
+                                                       onclick="return confirm('Are you sure you want to delete this paperwork?');">
+                                                        <i class="fas fa-trash me-1"></i> Delete
+                                                    </a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td class="px-4">
+                                                <span class="badge <?php echo $row['status'] == 1 ? 'bg-success' : 'bg-warning'; ?>">
+                                                    <?php echo $row['status'] == 1 ? 'Approved' : 'Pending'; ?>
+                                                </span>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="5" class="text-center py-4">No paperworks found.</td>
+                                        <td colspan="6" class="text-center py-4">No paperworks found.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
