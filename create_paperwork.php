@@ -6,6 +6,7 @@ if (!isset($_SESSION['email'])) {
 }
 
 include 'dbconnect.php';
+include 'includes/header.php';
 
 // Get user details
 $email = $_SESSION['email'];
@@ -279,6 +280,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </div>
 </main>
+
+<?php include 'includes/footer.php'; ?>
 
 <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

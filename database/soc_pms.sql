@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 11, 2024 at 04:00 AM
+-- Generation Time: Dec 11, 2024 at 04:40 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,8 +38,23 @@ CREATE TABLE `tbl_ppw` (
   `status` varchar(50) DEFAULT NULL,
   `ref_number` varchar(50) NOT NULL,
   `ppw_type` varchar(50) NOT NULL,
-  `document_path` varchar(255) DEFAULT NULL
+  `document_path` varchar(255) DEFAULT NULL,
+  `admin_note` text DEFAULT NULL,
+  `current_stage` varchar(50) DEFAULT 'hod_review',
+  `hod_approval` tinyint(1) DEFAULT NULL,
+  `hod_note` text DEFAULT NULL,
+  `hod_approval_date` datetime DEFAULT NULL,
+  `ceo_approval` tinyint(1) DEFAULT NULL,
+  `ceo_note` text DEFAULT NULL,
+  `ceo_approval_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_ppw`
+--
+
+INSERT INTO `tbl_ppw` (`ppw_id`, `id`, `name`, `session`, `project_name`, `project_date`, `submission_time`, `status`, `ref_number`, `ppw_type`, `document_path`, `admin_note`, `current_stage`, `hod_approval`, `hod_note`, `hod_approval_date`, `ceo_approval`, `ceo_note`, `ceo_approval_date`) VALUES
+(3, 1, 'HON JUN YOON', '1', '1', '2024-12-11', '2024-12-11 03:19:21', NULL, '1', 'Project Proposal', '1733887161_Paper_v5.1_Improved.pdf', NULL, 'hod_review', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -53,17 +68,18 @@ CREATE TABLE `tbl_users` (
   `email` text NOT NULL,
   `password` text NOT NULL,
   `user_type` varchar(255) NOT NULL DEFAULT 'user',
-  `register_time` datetime NOT NULL DEFAULT current_timestamp()
+  `register_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `department` varchar(100) DEFAULT NULL,
+  `reporting_to` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_users`
 --
 
-INSERT INTO `tbl_users` (`id`, `name`, `email`, `password`, `user_type`, `register_time`) VALUES
-(1, 'HON JUN YOON', 'joanchoo2201@hotmail.com', '$2y$10$VEcdi7ITsNseyr9GCb7vKuKy5v3FOSmGo29dRM08lgmBALeT0UDgi', 'admin', '2024-07-25 21:13:36'),
-(2, 'Matthew Hon', 'honjunyoon@hotmail.com', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'user', '2024-07-25 21:18:15'),
-(5, 'matthew hon', 'hon_jun_yoon@soc.uum.edu.my', '$2y$10$qv4nrj9yrKA.CAj93uS.1.03Z1FIVBGzqSubzCwK5orJMq.edgk0W', 'user', '2024-07-26 11:03:17');
+INSERT INTO `tbl_users` (`id`, `name`, `email`, `password`, `user_type`, `register_time`, `department`, `reporting_to`) VALUES
+(1, 'HON JUN YOON', 'joanchoo2201@hotmail.com', '$2y$10$VEcdi7ITsNseyr9GCb7vKuKy5v3FOSmGo29dRM08lgmBALeT0UDgi', 'admin', '2024-07-25 21:13:36', NULL, NULL),
+(2, 'Matthew Hon', 'honjunyoon@hotmail.com', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'user', '2024-07-25 21:18:15', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -90,7 +106,7 @@ ALTER TABLE `tbl_users`
 -- AUTO_INCREMENT for table `tbl_ppw`
 --
 ALTER TABLE `tbl_ppw`
-  MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `tbl_users`

@@ -10,6 +10,7 @@ if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['u
   
     // Include database connection
     include 'dbconnect.php';
+    include 'includes/header.php';
   
     // Get user type based on email from database
     $email = $_SESSION['email'];
@@ -89,50 +90,6 @@ $rows = $stmt->fetchAll();
 </head>
 
 <body class="bg-light">
-    <!-- Modern Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?php echo ($_SESSION['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
-                <i class="fas fa-file-alt text-primary me-2"></i>
-                <span class="fw-bold">SOC Paperwork System</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active px-3" href="admin_dashboard.php">
-                            <i class="fas fa-home me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="create_paperwork.php">
-                            <i class="fas fa-plus me-1"></i> New Paperwork
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_manage_account.php">
-                            <i class="fas fa-users me-1"></i> Manage Accounts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
-                            <i class="fas fa-info-circle me-1"></i> About
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger px-3" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
     <!-- Main Content with top margin to account for fixed navbar -->
     <main class="pt-5 mt-5">
         <!-- Welcome Section -->
@@ -201,10 +158,50 @@ $rows = $stmt->fetchAll();
                                             </td>
                                             <td class="px-4">
                                                 <button type="button" 
-                                                        class="btn btn-sm <?php echo $row['status'] == 1 ? 'btn-success' : 'btn-warning'; ?>"
+                                                        class="btn btn-sm <?php 
+                                                            switch($row['current_stage']) {
+                                                                case 'submitted':
+                                                                    echo 'btn-secondary';
+                                                                    break;
+                                                                case 'hod_review':
+                                                                    echo 'btn-warning';
+                                                                    break;
+                                                                case 'ceo_review':
+                                                                    echo 'btn-info';
+                                                                    break;
+                                                                case 'approved':
+                                                                    echo 'btn-success';
+                                                                    break;
+                                                                case 'rejected':
+                                                                    echo 'btn-danger';
+                                                                    break;
+                                                                default:
+                                                                    echo 'btn-secondary';
+                                                            }
+                                                        ?>"
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#statusModal<?php echo $row['ppw_id']; ?>">
-                                                    <?php echo $row['status'] == 1 ? 'Approved' : 'Pending'; ?>
+                                                    <?php 
+                                                        switch($row['current_stage']) {
+                                                            case 'submitted':
+                                                                echo 'Submitted';
+                                                                break;
+                                                            case 'hod_review':
+                                                                echo 'Pending HOD Review';
+                                                                break;
+                                                            case 'ceo_review':
+                                                                echo 'Pending CEO Review';
+                                                                break;
+                                                            case 'approved':
+                                                                echo 'Approved';
+                                                                break;
+                                                            case 'rejected':
+                                                                echo 'Returned';
+                                                                break;
+                                                            default:
+                                                                echo 'Processing';
+                                                        }
+                                                    ?>
                                                 </button>
                                             </td>
                                         </tr>
@@ -231,13 +228,7 @@ $rows = $stmt->fetchAll();
     </div>
 
     <!-- Footer -->
-    <footer class="py-4 mt-5 bg-white border-top">
-        <div class="container text-center">
-            <p class="text-muted mb-0">© 2024 SOC Paperwork Management System</p>
-        </div>
-    </footer>
-
-
+    <?php include 'includes/footer.php'; ?>
 
 <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -261,65 +252,100 @@ $rows = $stmt->fetchAll();
 
 <!-- Status Modal -->
 <div class="modal fade" id="statusModal<?php echo $row['ppw_id']; ?>" 
-    tabindex="-1" 
-    aria-hidden="true"
-    data-bs-backdrop="static">
+     tabindex="-1" 
+     aria-hidden="true"
+     data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-       <div class="modal-content border-0 shadow">
-          <div class="modal-header border-0">
-             <h5 class="modal-title fw-bold">
-                <i class="fas fa-info-circle text-primary me-2"></i>
-                Paperwork Status Details
-             </h5>
-             <button type="button" 
-                    class="btn-close" 
-                    data-bs-dismiss="modal" 
-                    aria-label="Close"></button>
-          </div>
-          <div class="modal-body py-4">
-             <table class="table table-bordered">
-                <tbody>
-                    <tr>
-                       <th class="bg-light" style="width: 40%">Submission Details</th>
-                       <td>
-                          <p class="mb-1"><strong>Date:</strong> 
-                             <?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?>
-                          </p>
-                          <p class="mb-0"><strong>By:</strong> 
-                             <?php echo htmlspecialchars($row['name']); ?>
-                          </p>
-                       </td>
-                    </tr>
-                    <?php if($row['status'] == 1): ?>
-                    <tr>
-                       <th class="bg-light">Approval Details</th>
-                       <td>
-                          <p class="mb-1"><strong>Status:</strong> 
-                             <span class="badge bg-success">Approved</span>
-                          </p>
-                          <p class="mb-1"><strong>By:</strong> 
-                             <?php echo htmlspecialchars($row['approved_by'] ?? 'Admin'); ?>
-                          </p>
-                          <p class="mb-0"><strong>Note:</strong> 
-                             <?php echo htmlspecialchars($row['admin_note'] ?? 'No note provided'); ?>
-                          </p>
-                       </td>
-                    </tr>
-                    <?php else: ?>
-                    <tr>
-                       <th class="bg-light">Status</th>
-                       <td>
-                          <span class="badge bg-warning">Pending Approval</span>
-                       </td>
-                    </tr>
-                    <?php endif; ?>
-                </tbody>
-             </table>
-          </div>
-          <div class="modal-footer border-0">
-             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-          </div>
-       </div>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Paperwork Status Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Status Card -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">
+                            <i class="fas fa-file-alt me-2"></i>Submission Information
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <p class="mb-1"><small class="fw-medium">Date:</small></p>
+                                <p class="mb-0"><?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><small class="fw-medium">Submitted By:</small></p>
+                                <p class="mb-0"><?php echo htmlspecialchars($row['name']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HOD Review Card -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">
+                            <i class="fas fa-user-tie me-2"></i>HOD Review
+                        </h6>
+                        <?php if($row['hod_approval'] !== null): ?>
+                            <div class="mb-3">
+                                <p class="mb-1"><small class="fw-medium">Status:</small></p>
+                                <span class="badge <?php echo $row['hod_approval'] ? 'bg-success' : 'bg-danger'; ?>">
+                                    <?php echo $row['hod_approval'] ? 'Approved' : 'Returned'; ?>
+                                </span>
+                            </div>
+                            <?php if($row['hod_note']): ?>
+                                <div class="mb-3">
+                                    <p class="mb-1"><small class="fw-medium">Note:</small></p>
+                                    <p class="mb-0"><?php echo htmlspecialchars($row['hod_note']); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            <small class="text-muted">
+                                <?php echo date('d M Y, h:i A', strtotime($row['hod_approval_date'])); ?>
+                            </small>
+                        <?php else: ?>
+                            <p class="mb-0 text-muted">Pending Review</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- CEO Review Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-3 text-muted">
+                            <i class="fas fa-user-shield me-2"></i>CEO Review
+                        </h6>
+                        <?php if($row['hod_approval'] && $row['ceo_approval'] !== null): ?>
+                            <div class="mb-3">
+                                <p class="mb-1"><small class="fw-medium">Status:</small></p>
+                                <span class="badge <?php echo $row['ceo_approval'] ? 'bg-success' : 'bg-danger'; ?>">
+                                    <?php echo $row['ceo_approval'] ? 'Approved' : 'Returned'; ?>
+                                </span>
+                            </div>
+                            <?php if($row['ceo_note']): ?>
+                                <div class="mb-3">
+                                    <p class="mb-1"><small class="fw-medium">Note:</small></p>
+                                    <p class="mb-0"><?php echo htmlspecialchars($row['ceo_note']); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            <small class="text-muted">
+                                <?php echo date('d M Y, h:i A', strtotime($row['ceo_approval_date'])); ?>
+                            </small>
+                        <?php else: ?>
+                            <p class="mb-0 text-muted">
+                                <?php echo $row['hod_approval'] ? 'Pending Review' : 'Awaiting HOD Approval'; ?>
+                            </p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 

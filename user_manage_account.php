@@ -6,6 +6,7 @@
     }
     // Include database connection
     include 'dbconnect.php';
+    include 'includes/header.php';
   
     // Get user type based on email from database
     $email = $_SESSION['email'];
@@ -78,51 +79,7 @@
 </head>
 
 <body class="bg-light">
-    <!-- Modern Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?php echo ($_SESSION['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
-                <i class="fas fa-file-alt text-primary me-2"></i>
-                <span class="fw-bold">SOC Paperwork System</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="user_dashboard.php">
-                            <i class="fas fa-home me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="create_paperwork.php">
-                            <i class="fas fa-plus me-1"></i> New Paperwork
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active px-3" href="user_manage_account.php">
-                            <i class="fas fa-users me-1"></i> Manage Account
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
-                            <i class="fas fa-info-circle me-1"></i> About
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger px-3" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content with top margin to account for fixed navbar -->
+ <!-- Main Content with top margin to account for fixed navbar -->
     <main class="pt-5 mt-5">
         <!-- Welcome Section -->
         <div class="container py-5">
@@ -185,11 +142,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-4 mt-5 bg-white border-top">
-        <div class="container text-center">
-            <p class="text-muted mb-0">© 2024 SOC Paperwork Management System</p>
-        </div>
-    </footer>
+    <?php include 'includes/footer.php'; ?>
 
     <!-- About Modal -->
     <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">

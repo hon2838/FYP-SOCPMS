@@ -7,6 +7,7 @@
  
    // Include database connection
    include 'dbconnect.php';
+   include 'includes/header.php';
  
    // Get user type based on email from database
    $email = $_SESSION['email'];
@@ -107,50 +108,6 @@
 </head>
 
 <body class="bg-light">
-    <!-- Modern Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?php echo ($_SESSION['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
-                <i class="fas fa-file-alt text-primary me-2"></i>
-                <span class="fw-bold">SOC Paperwork System</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_dashboard.php">
-                            <i class="fas fa-home me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="create_paperwork.php">
-                            <i class="fas fa-plus me-1"></i> New Paperwork
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active px-3" href="admin_manage_account.php">
-                            <i class="fas fa-users me-1"></i> Manage Accounts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
-                            <i class="fas fa-info-circle me-1"></i> About
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger px-3" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
     <!-- Main Content with top margin to account for fixed navbar -->
     <main class="pt-5 mt-5">
         <!-- Welcome Section -->
@@ -207,13 +164,6 @@
                                     </td>
                                 </tr>
                             <?php } ?>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button></td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -229,15 +179,7 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <p class="text-center">School of Computing Paperwork Management System © 2024</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php include 'includes/footer.php'; ?>
 
 <!-- About Modal -->
 <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">
@@ -332,9 +274,23 @@
                     <div class="mb-4">
                         <label for="addUserType" class="form-label fw-medium">User Type</label>
                         <select class="form-select form-select-lg shadow-sm" id="addUserType" name="user_type" required>
-                            <option value="admin">Admin</option>
-                            <option value="user">Normal User</option>
+                            <option value="">Select user type</option>
+                            <option value="admin">System Admin</option>
+                            <option value="user">Staff</option>
+                            <option value="hod">Head of Department</option>
+                            <option value="ceo">CEO</option>
                         </select>
+                        <div class="mb-3">
+                            <label for="department" class="form-label fw-medium mt-3">Department</label>
+                            <select class="form-select form-select-lg shadow-sm" id="department" name="department">
+                                <option value="">Select department</option>
+                                <option value="computing">School of Computing</option>
+                                <option value="business">School of Business</option>
+                                <option value="engineering">School of Engineering</option>
+                                <!-- Add more departments as needed -->
+                            </select>
+                            <small class="text-muted">Required for Staff and Head of Department</small>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -362,6 +318,35 @@
             document.getElementById('editUserEmail').value = userEmail;
             document.getElementById('edituser_type').value = user_type;
         });
+    });
+
+    document.getElementById('addUserType').addEventListener('change', function() {
+        const departmentField = document.getElementById('department');
+        const departmentGroup = departmentField.closest('.mb-3');
+        
+        if (this.value === 'user' || this.value === 'hod') {
+            departmentGroup.style.display = 'block';
+            departmentField.required = true;
+        } else {
+            departmentGroup.style.display = 'none';
+            departmentField.required = false;
+            departmentField.value = '';
+        }
+    });
+
+    // For edit modal
+    document.getElementById('editUserType').addEventListener('change', function() {
+        const departmentField = document.getElementById('editDepartment');
+        const departmentGroup = departmentField.closest('.mb-3');
+        
+        if (this.value === 'user' || this.value === 'hod') {
+            departmentGroup.style.display = 'block';
+            departmentField.required = true;
+        } else {
+            departmentGroup.style.display = 'none';
+            departmentField.required = false;
+            departmentField.value = '';
+        }
     });
     </script>
 </body>

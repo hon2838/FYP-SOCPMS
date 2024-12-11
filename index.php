@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   // Check input errors before processing the database query
   if (empty($email_err) && empty($password_err)) {
     // Prepare a select statement
-    $sql = "SELECT id, email, password, user_type FROM tbl_users WHERE email = ?";
+    $sql = "SELECT id, email, password, name, user_type FROM tbl_users WHERE email = ?";
     if ($stmt = $conn->prepare($sql)) {
         // Bind variables to the prepared statement as parameters
         $stmt->bindParam(1, $param_email);
@@ -51,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                   $_SESSION['id'] = $id;
                   $_SESSION['email'] = $fetched_email;
                   $_SESSION['user_type'] = $user_type;  // Remove duplicate assignment
+                  $_SESSION['name'] = $row['name']; // Add this line to store user's name
                   
                   // Debug log
                   error_log("Session variables set: " . print_r($_SESSION, true));
@@ -174,7 +175,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
-
+    <?php include 'includes/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Form Validation Script -->
     <script>

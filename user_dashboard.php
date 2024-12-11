@@ -7,7 +7,8 @@
   
     // Include database connection
     include 'dbconnect.php';
-  
+    include 'includes/header.php';
+    
     // Get user type based on email from database
     $email = $_SESSION['email'];
 
@@ -269,11 +270,7 @@
 
 
 <!-- Footer -->
-<footer class="py-4 mt-5 bg-white border-top">
-    <div class="container text-center">
-        <p class="text-muted mb-0">© 2024 SOC Paperwork Management System</p>
-    </div>
-</footer>
+<?php include 'includes/footer.php'; ?>
 
     <!-- About Modal -->
     <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Title" aria-hidden="true">

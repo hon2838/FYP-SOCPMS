@@ -6,16 +6,59 @@ if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['u
 }
 
 include 'dbconnect.php';
+include 'includes/header.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     $ppw_id = $_POST['ppw_id'];
-    $status = ($_POST['action'] == 'approve') ? 1 : 0;
-    
-    $updateQuery = "UPDATE tbl_ppw SET status = ? WHERE ppw_id = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $stmt->execute([$status, $ppw_id]);
-    
-    echo "<script>alert('Status updated successfully.'); window.location.href='admin_dashboard.php';</script>";
+    $note = isset($_POST['admin_note']) ? trim($_POST['admin_note']) : null;
+    $user_type = $_SESSION['user_type'];
+    $current_time = date('Y-m-d H:i:s');
+
+    if ($user_type == 'hod') {
+        if ($_POST['action'] == 'approve') {
+            $sql = "UPDATE tbl_ppw SET 
+                    hod_approval = 1,
+                    hod_note = ?,
+                    hod_approval_date = ?,
+                    current_stage = 'ceo_review'
+                    WHERE ppw_id = ?";
+            $message = "Paperwork approved and forwarded to CEO";
+        } else {
+            $sql = "UPDATE tbl_ppw SET 
+                    hod_approval = 0,
+                    hod_note = ?,
+                    hod_approval_date = ?,
+                    current_stage = 'rejected'
+                    WHERE ppw_id = ?";
+            $message = "Paperwork returned for modification";
+        }
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$note, $current_time, $ppw_id]);
+    } 
+    elseif ($user_type == 'ceo') {
+        if ($_POST['action'] == 'approve') {
+            $sql = "UPDATE tbl_ppw SET 
+                    ceo_approval = 1,
+                    ceo_note = ?,
+                    ceo_approval_date = ?,
+                    current_stage = 'approved',
+                    status = 1
+                    WHERE ppw_id = ?";
+            $message = "Paperwork approved";
+        } else {
+            $sql = "UPDATE tbl_ppw SET 
+                    ceo_approval = 0,
+                    ceo_note = ?,
+                    ceo_approval_date = ?,
+                    current_stage = 'rejected'
+                    WHERE ppw_id = ?";
+            $message = "Paperwork returned for modification";
+        }
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$note, $current_time, $ppw_id]);
+    }
+
+    echo "<script>alert('$message'); window.location.href='admin_dashboard.php';</script>";
     exit;
 }
 
@@ -49,51 +92,7 @@ if (isset($_GET['ppw_id'])) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-light">
-    <!-- Modern Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?php echo ($_SESSION['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php'; ?>">
-                <i class="fas fa-file-alt text-primary me-2"></i>
-                <span class="fw-bold">SOC Paperwork System</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_dashboard.php">
-                            <i class="fas fa-home me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="create_paperwork.php">
-                            <i class="fas fa-plus me-1"></i> New Paperwork
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="admin_manage_account.php">
-                            <i class="fas fa-users me-1"></i> Manage Accounts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#" data-bs-toggle="modal" data-bs-target="#modal1">
-                            <i class="fas fa-info-circle me-1"></i> About
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger px-3" href="logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
+   <!-- Main Content -->
     <main class="pt-5 mt-5">
         <div class="container py-5">
             <div class="card border-0 shadow-sm">
@@ -186,12 +185,11 @@ if (isset($_GET['ppw_id'])) {
 
                         <!-- Approval Buttons -->
                         <div class="d-flex justify-content-end gap-2">
-                            <input type="hidden" name="ppw_id" value="<?php echo htmlspecialchars($paperwork['ppw_id']); ?>">
-                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal">
                                 <i class="fas fa-check me-2"></i>Approve
                             </button>
-                            <button type="submit" name="action" value="not_approve" class="btn btn-danger">
-                                <i class="fas fa-times me-2"></i>Not Approve
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#disapproveModal">
+                                <i class="fas fa-times me-2"></i>Return for Modification
                             </button>
                             <a href="admin_dashboard.php" class="btn btn-light">
                                 <i class="fas fa-arrow-left me-2"></i>Back
@@ -202,6 +200,80 @@ if (isset($_GET['ppw_id'])) {
             </div>
         </div>
     </main>
+
+    <!-- Approve Modal -->
+    <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form action="viewpaperworkadmin.php" method="post">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Approve Paperwork
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <input type="hidden" name="ppw_id" value="<?php echo htmlspecialchars($paperwork['ppw_id']); ?>">
+                        <div class="mb-4">
+                            <label for="approveNote" class="form-label fw-medium">Approval Note:</label>
+                            <textarea 
+                                class="form-control form-control-lg shadow-sm" 
+                                id="approveNote" 
+                                name="admin_note" 
+                                rows="3"
+                                placeholder="Add any notes or comments (optional)"
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="action" value="approve" class="btn btn-success px-4">
+                            <i class="fas fa-check me-2"></i>Confirm Approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disapprove Modal -->
+    <div class="modal fade" id="disapproveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form action="viewpaperworkadmin.php" method="post">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-undo text-danger me-2"></i>
+                            Return for Modification
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <input type="hidden" name="ppw_id" value="<?php echo htmlspecialchars($paperwork['ppw_id']); ?>">
+                        <div class="mb-4">
+                            <label for="disapproveNote" class="form-label fw-medium">Feedback Note: <span class="text-danger">*</span></label>
+                            <textarea 
+                                class="form-control form-control-lg shadow-sm" 
+                                id="disapproveNote" 
+                                name="admin_note" 
+                                rows="3"
+                                placeholder="Provide feedback on required modifications"
+                                required
+                            ></textarea>
+                            <div class="form-text">Please provide specific feedback on what needs to be modified.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="action" value="not_approve" class="btn btn-danger px-4">
+                            <i class="fas fa-undo me-2"></i>Return for Modification
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="py-4 mt-5 bg-white border-top">
