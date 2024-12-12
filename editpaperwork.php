@@ -1,20 +1,94 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
-// Allow both admin and user access
+
+// Strict session validation
 if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
+    error_log("Unauthorized access attempt to editpaperwork.php");
     header('Location: index.php');
     exit;
+}
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+// Rate limiting
+if (!isset($_SESSION['edit_attempts'])) {
+    $_SESSION['edit_attempts'] = 1;
+    $_SESSION['edit_time'] = time();
+} else {
+    if (time() - $_SESSION['edit_time'] < 300) { // 5 minute window
+        if ($_SESSION['edit_attempts'] > 5) { // Max 5 edits per 5 minutes
+            error_log("Rate limit exceeded for user: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many edit attempts. Please try again later.");
+        }
+        $_SESSION['edit_attempts']++;
+    } else {
+        $_SESSION['edit_attempts'] = 1;
+        $_SESSION['edit_time'] = time();
+    }
 }
 
 include 'dbconnect.php';
 include 'includes/header.php';
 
-// Get user details
-$email = $_SESSION['email'];
-$userQuery = "SELECT id, name, user_type FROM tbl_users WHERE email = ?";
-$userStmt = $conn->prepare($userQuery);
-$userStmt->execute([$email]);
-$user = $userStmt->fetch(PDO::FETCH_ASSOC);
+try {
+    // Sanitize and validate email
+    $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
+    }
+
+    // Get user details with prepared statement
+    $userQuery = "SELECT id, name, user_type FROM tbl_users WHERE email = ? AND active = 1";
+    $userStmt = $conn->prepare($userQuery);
+    $userStmt->execute([$email]);
+    
+    if ($userStmt->rowCount() === 0) {
+        error_log("Access attempt from inactive/nonexistent user: " . $email);
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
+
+    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+    // Verify user permissions
+    if (!in_array($user['user_type'], ['admin', 'user'])) {
+        error_log("Invalid user type attempting access: " . $user['user_type']);
+        header('Location: index.php');
+        exit;
+    }
+
+} catch (Exception $e) {
+    error_log("Error in editpaperwork.php: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
 
 // Get paperwork details
 if (isset($_GET['ppw_id'])) {

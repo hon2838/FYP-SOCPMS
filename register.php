@@ -1,10 +1,67 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com");
+header("Referrer-Policy: strict-origin-only");
+
+// Rate limiting for registration attempts
+if (!isset($_SESSION['register_attempts'])) {
+    $_SESSION['register_attempts'] = 1;
+    $_SESSION['register_time'] = time();
+} else {
+    if (time() - $_SESSION['register_time'] < 300) { // 5 minute window
+        if ($_SESSION['register_attempts'] > 3) { // Max 3 registration attempts per 5 minutes
+            error_log("Registration rate limit exceeded from IP: " . $_SERVER['REMOTE_ADDR']);
+            die("Too many registration attempts. Please try again later.");
+        }
+        $_SESSION['register_attempts']++;
+    } else {
+        $_SESSION['register_attempts'] = 1;
+        $_SESSION['register_time'] = time();
+    }
+}
+
 include 'dbconnect.php'; // Adjust the path if necessary
 
 // Initialize variables for form validation
 $name = $password = $confirmPassword = $email = '';
 $name_err = $password_err = $confirmPassword_err = '';
+
+// Input validation function
+function validateInput($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+// Password strength validation
+function validatePassword($password) {
+    if (strlen($password) < 8) {
+        return "Password must be at least 8 characters long";
+    }
+    if (!preg_match("/[A-Z]/", $password)) {
+        return "Password must contain at least one uppercase letter";
+    }
+    if (!preg_match("/[a-z]/", $password)) {
+        return "Password must contain at least one lowercase letter";
+    }
+    if (!preg_match("/[0-9]/", $password)) {
+        return "Password must contain at least one number";
+    }
+    if (!preg_match("/[!@#$%^&*()\-_=+{};:,<.>]/", $password)) {
+        return "Password must contain at least one special character";
+    }
+    return "";
+}
 
 // Processing form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -44,12 +101,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty(trim($_POST['password']))) {
         $password_err = "Please enter a password.";
         echo $password_err;
-    } elseif (strlen(trim($_POST['password'])) < 6) {
-        $password_err = "Password must have at least 6 characters.";
-        echo $password_err;
     } else {
-        $password = trim($_POST['password']);
-        
+        $password_err = validatePassword(trim($_POST['password']));
+        if (empty($password_err)) {
+            $password = trim($_POST['password']);
+        } else {
+            echo $password_err;
+        }
     }
 
     // Validate confirm password

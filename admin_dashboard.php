@@ -1,19 +1,90 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
+
+// Enable error logging
 error_log("Admin Dashboard Session: " . print_r($_SESSION, true));
 
-if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
+// Strict session validation with timing attack prevention
+if (!isset($_SESSION['email']) || 
+    !isset($_SESSION['user_type']) || 
+    !hash_equals($_SESSION['user_type'], 'admin')) {
     error_log("Admin access denied: " . print_r($_SESSION, true));
+    session_destroy();
     header('Location: index.php');
     exit;
 }
-  
-    // Include database connection
+
+// Set secure headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && 
+    (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+// Rate limiting for admin actions
+if (!isset($_SESSION['request_count'])) {
+    $_SESSION['request_count'] = 1;
+    $_SESSION['request_time'] = time();
+} else {
+    if (time() - $_SESSION['request_time'] < 60) { // 1 minute window
+        if ($_SESSION['request_count'] > 30) { // Max 30 requests per minute
+            error_log("Rate limit exceeded for admin: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many requests. Please try again later.");
+        }
+        $_SESSION['request_count']++;
+    } else {
+        $_SESSION['request_count'] = 1;
+        $_SESSION['request_time'] = time();
+    }
+}
+
+// Include database connection with additional security checks
+try {
     include 'dbconnect.php';
-    include 'includes/header.php';
-  
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
+    
+    // Verify admin status in database
+    $stmt = $conn->prepare("SELECT active FROM tbl_users WHERE email = ? AND user_type = 'admin' AND active = 1");
+    $stmt->execute([$_SESSION['email']]);
+    
+    if ($stmt->rowCount() === 0) {
+        error_log("Invalid admin access attempt: " . $_SESSION['email']);
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
+} catch (PDOException $e) {
+    error_log("Database error in admin dashboard: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
+
+include 'includes/header.php';
+
+// Get user type based on email from database
+$email = $_SESSION['email'];
 
 // Load patients
 $sqlloadpatients = "SELECT p.*, u.name FROM tbl_ppw p JOIN tbl_users u ON p.id = u.id ORDER BY p.submission_time DESC";

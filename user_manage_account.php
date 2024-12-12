@@ -1,28 +1,104 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
-      header('Location: index.php');
-      exit;
-    }
-    // Include database connection
-    include 'dbconnect.php';
-    include 'includes/header.php';
-  
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
+session_start();
 
-    if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
-        $id = $_GET['id'];
-        try {
-            $sqldeletepatient = "DELETE FROM tbl_users WHERE id = ?";
-            $stmt = $conn->prepare($sqldeletepatient);
-            $stmt->execute([$id]);
-            echo "<script>alert('User deleted successfully.');</script>";
-            echo "<script>window.location.href='admin_manage_account.php';</script>";
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
+// Strict session validation
+if (!isset($_SESSION['email']) || 
+    !isset($_SESSION['user_type']) || 
+    !hash_equals($_SESSION['user_type'], 'user')) {
+    error_log("Unauthorized account management access attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+// Rate limiting for account management actions
+if (!isset($_SESSION['manage_attempts'])) {
+    $_SESSION['manage_attempts'] = 1;
+    $_SESSION['manage_time'] = time();
+} else {
+    if (time() - $_SESSION['manage_time'] < 300) { // 5 minute window
+        if ($_SESSION['manage_attempts'] > 10) { // Max 10 attempts per 5 minutes
+            error_log("Account management rate limit exceeded for user: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many requests. Please try again later.");
         }
+        $_SESSION['manage_attempts']++;
+    } else {
+        $_SESSION['manage_attempts'] = 1;
+        $_SESSION['manage_time'] = time();
     }
+}
+
+// Include database connection
+include 'dbconnect.php';
+include 'includes/header.php';
+
+try {
+    // Sanitize and validate email
+    $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
+    }
+
+    // Delete account functionality with validation
+    if (isset($_GET['submit']) && $_GET['submit'] === 'delete') {
+        $id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
+        if (!$id) {
+            throw new Exception("Invalid user ID");
+        }
+
+        // Verify user owns this account
+        $verifyStmt = $conn->prepare("SELECT id FROM tbl_users WHERE id = ? AND email = ? AND user_type = 'user'");
+        $verifyStmt->execute([$id, $email]);
+        
+        if ($verifyStmt->rowCount() === 0) {
+            error_log("Unauthorized deletion attempt by user: {$email} for ID: {$id}");
+            throw new Exception("Unauthorized action");
+        }
+
+        $deleteStmt = $conn->prepare("DELETE FROM tbl_users WHERE id = ? AND email = ?");
+        if (!$deleteStmt->execute([$id, $email])) {
+            throw new Exception("Failed to delete account");
+        }
+        
+        // Log successful deletion
+        error_log("User account deleted successfully: {$email}");
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
+} catch (Exception $e) {
+    error_log("Error in user_manage_account.php: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
 
     $results_per_page = 10;
     $pageno = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;

@@ -1,31 +1,97 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
-if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
+
+// Strict session validation with timing attack prevention
+if (!isset($_SESSION['email']) || 
+    !isset($_SESSION['user_type']) || 
+    !hash_equals($_SESSION['user_type'], 'user')) {
+    error_log("Unauthorized paperwork view attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    session_destroy();
     header('Location: index.php');
     exit;
+}
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
 }
 
 // Include database connection
 include 'dbconnect.php';
 include 'includes/header.php';
 
-// Get user type based on email from database
-$email = $_SESSION['email'];
+// Rate limiting for paperwork views
+if (!isset($_SESSION['view_attempts'])) {
+    $_SESSION['view_attempts'] = 1;
+    $_SESSION['view_time'] = time();
+} else {
+    if (time() - $_SESSION['view_time'] < 300) { // 5 minute window
+        if ($_SESSION['view_attempts'] > 20) { // Max 20 views per 5 minutes
+            error_log("Paperwork view rate limit exceeded for user: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many requests. Please try again later.");
+        }
+        $_SESSION['view_attempts']++;
+    } else {
+        $_SESSION['view_attempts'] = 1;
+        $_SESSION['view_time'] = time();
+    }
+}
 
-// Check if ppw_id is provided
-if (isset($_GET['ppw_id'])) {
-    $ppw_id = $_GET['ppw_id'];
-    $sql = "SELECT * FROM tbl_ppw WHERE ppw_id = ?";
+try {
+    // Sanitize email
+    $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
+    }
+
+    // Validate and sanitize ppw_id
+    if (!isset($_GET['ppw_id']) || !filter_var($_GET['ppw_id'], FILTER_VALIDATE_INT)) {
+        throw new Exception("Invalid paperwork ID");
+    }
+    $ppw_id = filter_var($_GET['ppw_id'], FILTER_VALIDATE_INT);
+
+    // Verify user has permission to view this paperwork
+    $sql = "SELECT * FROM tbl_ppw WHERE ppw_id = ? AND user_email = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$ppw_id]);
+    $stmt->execute([$ppw_id, $email]);
+
+    if ($stmt->rowCount() === 0) {
+        error_log("Unauthorized paperwork access attempt - User: $email, Paperwork ID: $ppw_id");
+        throw new Exception("Access denied");
+    }
+
     $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$paperwork) {
         echo "<script>alert('Paperwork not found.'); window.location.href='user_dashboard.php';</script>";
         exit;
     }
-} else {
-    echo "<script>alert('No Paperwork ID provided.'); window.location.href='user_dashboard.php';</script>";
+} catch (Exception $e) {
+    echo "<script>alert('{$e->getMessage()}'); window.location.href='user_dashboard.php';</script>";
     exit;
 }
 

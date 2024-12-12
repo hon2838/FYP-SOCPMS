@@ -1,33 +1,100 @@
 <?php
-   session_start();
-   if (!isset($_SESSION['email'])) {
-       header('Location: index.php');
-       exit;
-   }
- 
-   // Include database connection
-   include 'dbconnect.php';
-   include 'includes/header.php';
- 
-   // Get user type based on email from database
-   $email = $_SESSION['email'];
-   $userQuery = "SELECT user_type FROM tbl_users WHERE email = ?";
-   $userStmt = $conn->prepare($userQuery);
-   $userStmt->execute([$email]);
-   $userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
- 
-   if ($userResult) {
-       $user_type = $userResult['user_type'];
-       if ($user_type != "admin") {
-           header('Location: index.php');
-           exit;
-       }
-   } else {
-       // If no user is found, redirect to index
-       header('Location: index.php');
-       exit;
-   }
- 
+// Start session and enforce HTTPS
+session_start();
+// Strict session validation
+if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
+    header('Location: index.php');
+    exit;
+}
+
+// Validate admin access
+if ($_SESSION['user_type'] !== 'admin') {
+    header('Location: index.php');
+    exit; 
+}
+
+// Include database connection with PDO security options
+include 'dbconnect.php';
+include 'includes/header.php';
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+
+// Rate limiting
+$rate_limit_minutes = 5;
+$max_attempts = 10;
+$current_time = time();
+
+// Check for rate limiting using sessions
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 1;
+    $_SESSION['first_attempt'] = $current_time;
+} else if ($_SESSION['login_attempts'] >= $max_attempts) {
+    if ($current_time - $_SESSION['first_attempt'] < $rate_limit_minutes * 60) {
+        die("Too many requests. Please try again later.");
+    } else {
+        $_SESSION['login_attempts'] = 1;
+        $_SESSION['first_attempt'] = $current_time;
+    }
+} else {
+    $_SESSION['login_attempts']++;
+}
+
+// Get user type with prepared statement and input validation
+$email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    die("Invalid email format");
+}
+
+try {
+    $userQuery = "SELECT user_type FROM tbl_users WHERE email = ? AND active = 1";
+    $userStmt = $conn->prepare($userQuery);
+    $userStmt->execute([$email]);
+    
+    if ($userStmt->rowCount() === 0) {
+        // Log potential security breach
+        error_log("Failed admin access attempt from email: " . $email);
+        header('Location: index.php');
+        exit;
+    }
+    
+    $userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Double check user type
+    if ($userResult['user_type'] !== 'admin') {
+        // Log unauthorized access attempt
+        error_log("Unauthorized admin access attempt from email: " . $email);
+        header('Location: index.php');
+        exit;
+    }
+
+} catch (PDOException $e) {
+    // Log error securely
+    error_log("Database error: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
+
+// Set session timeout after 30 minutes of inactivity
+if (isset($_SESSION['last_activity']) && 
+    (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Regenerate session ID periodically to prevent fixation
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
     $sqlloadpatients = "SELECT * FROM tbl_users";
     $stmt = $conn->prepare($sqlloadpatients);
     $stmt->execute();

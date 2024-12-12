@@ -1,87 +1,124 @@
 <?php
 include 'dbconnect.php';
+
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
+session_start();
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+
+// Rate limiting for login attempts
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 1;
+    $_SESSION['first_attempt'] = time();
+} else {
+    if (time() - $_SESSION['first_attempt'] < 300) { // 5 minute window
+        if ($_SESSION['login_attempts'] > 5) { // Max 5 attempts per 5 minutes
+            error_log("Login rate limit exceeded for IP: " . $_SERVER['REMOTE_ADDR']);
+            die("Too many login attempts. Please try again later.");
+        }
+        $_SESSION['login_attempts']++;
+    } else {
+        $_SESSION['login_attempts'] = 1;
+        $_SESSION['first_attempt'] = time();
+    }
+}
+
 // Initialize variables
 $email = $password = '';
 $email_err = $password_err = '';
+
 // Process login form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  // Validate email
-  if (empty(trim($_POST['email']))) {
-      $email_err = 'Please enter email.';
-  } else {
-      $email = trim($_POST['email']);
-  }
-  // Validate password
-  if (empty(trim($_POST['password']))) {
-      $password_err = 'Please enter your password.';
-  } else {
-      $password = trim($_POST['password']);
-  }
-  // Check input errors before processing the database query
-  if (empty($email_err) && empty($password_err)) {
-    // Prepare a select statement
-    $sql = "SELECT id, email, password, name, user_type FROM tbl_users WHERE email = ?";
-    if ($stmt = $conn->prepare($sql)) {
-        // Bind variables to the prepared statement as parameters
-        $stmt->bindParam(1, $param_email);
-        // Set parameters
-        $param_email = $email;
-        // Attempt to execute the prepared statement
-        if ($stmt->execute()) {
-          // Check if email exists, if yes then verify password
-          if ($stmt->rowCount() > 0) {
-              // Fetch result
-              $row = $stmt->fetch(PDO::FETCH_ASSOC);
-              $id = $row['id'];
-              $fetched_email = $row['email'];
-              $hashed_password = $row['password'];
-              $user_type = $row['user_type'];
-              
-              // Debugging: Print fetched data
-              var_dump($row);
+    // Validate email
+    if (empty(trim($_POST['email']))) {
+        $email_err = 'Please enter email.';
+    } else {
+        $email = trim($_POST['email']);
+    }
+    // Validate password
+    if (empty(trim($_POST['password']))) {
+        $password_err = 'Please enter your password.';
+    } else {
+        $password = trim($_POST['password']);
+    }
+    // Check input errors before processing the database query
+    if (empty($email_err) && empty($password_err)) {
+        // Prepare a select statement with enhanced security
+        $sql = "SELECT id, email, password, name, user_type, active FROM tbl_users WHERE email = ? AND active = 1";
+        if ($stmt = $conn->prepare($sql)) {
+            // Validate and sanitize email
+            $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                error_log("Invalid email format attempt: " . $email);
+                die("Invalid email format");
+            }
 
-              if (password_verify($password, $hashed_password)) {
-                  // Start session if not already started
-                  if (session_status() == PHP_SESSION_NONE) {
-                      session_start();
-                  }
-                  
-                  // Store data in session variables
-                  $_SESSION['loggedin'] = true;
-                  $_SESSION['id'] = $id;
-                  $_SESSION['email'] = $fetched_email;
-                  $_SESSION['user_type'] = $user_type;  // Remove duplicate assignment
-                  $_SESSION['name'] = $row['name']; // Add this line to store user's name
-                  
-                  // Debug log
-                  error_log("Session variables set: " . print_r($_SESSION, true));
-                  
-                  // Redirect user based on usertype
-                  if ($user_type == 'admin') {
-                      header('location: admin_dashboard.php');
-                  } else if ($user_type == 'user') {
-                      header('location: user_dashboard.php');
-                  }
-                  exit;
-              } else {
-                  // Display an error message if password is not valid
-                  $password_err = 'Invalid password.';
-                  echo '<script>alert("Invalid password.")</script>';
-              }
-          } else {
-              // Display an error message if email doesn't exist
-              $email_err = 'No account found with that email.';
-              echo '<script>alert("No account found with that email.")</script>';
-          }
-      } else {
-          echo 'Oops! Something went wrong. Please try again later.';
-      }
-          // Close statement
-          $stmt = null;
-      } else {
-          echo 'Oops! Something went wrong with the SQL statement. Please try again later.';
-      }
-  }
+            // Bind parameters using proper type
+            $stmt->bindParam(1, $email, PDO::PARAM_STR);
+
+            try {
+                // Execute with timing attack protection
+                if ($stmt->execute()) {
+                    if ($stmt->rowCount() === 1) {
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                        // Verify password with timing attack protection
+                        if (hash_equals(hash('sha256', $row['password']), hash('sha256', $_POST['password']))) {
+                            if ($row['active'] == 1) {
+                                // Start new session and regenerate ID
+                                session_regenerate_id(true);
+
+                                // Set session variables
+                                $_SESSION['loggedin'] = true;
+                                $_SESSION['id'] = $row['id'];
+                                $_SESSION['email'] = $row['email'];
+                                $_SESSION['user_type'] = $row['user_type'];
+                                $_SESSION['name'] = $row['name'];
+                                $_SESSION['last_activity'] = time();
+
+                                // Log successful login
+                                error_log("Successful login: " . $row['email']);
+
+                                // Clear login attempts on success
+                                unset($_SESSION['login_attempts']);
+                                unset($_SESSION['first_attempt']);
+
+                                // Redirect based on user type
+                                header('Location: ' . ($row['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'));
+                                exit;
+                            } else {
+                                error_log("Login attempt on inactive account: " . $row['email']);
+                                die("Account is inactive");
+                            }
+                        } else {
+                            // Log failed attempt
+                            error_log("Failed login attempt for email: " . $email);
+                            sleep(1); // Prevent brute force
+                            $password_err = "Invalid password";
+                        }
+                    } else {
+                        error_log("Login attempt with non-existent email: " . $email);
+                        sleep(1); // Prevent brute force
+                        $email_err = "Email not found";
+                    }
+                }
+            } catch (PDOException $e) {
+                error_log("Login error: " . $e->getMessage());
+                die("An error occurred. Please try again later.");
+            }
+
+            // Close statement
+            $stmt = null;
+        }
+    }
 }
 ?>
 

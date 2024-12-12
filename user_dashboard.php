@@ -1,89 +1,178 @@
 <?php
-    session_start();
-    if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'user')) {
-      header('Location: index.php');
-      exit;
-    }
-  
-    // Include database connection
-    include 'dbconnect.php';
-    include 'includes/header.php';
-    
-    // Get user type based on email from database
-    $email = $_SESSION['email'];
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
+session_start();
 
-    // Get user ID based on email
-    $userIdQuery = "SELECT id FROM tbl_users WHERE email = ?";
+// Strict session validation
+if (!isset($_SESSION['email']) || 
+    !isset($_SESSION['user_type']) || 
+    !hash_equals($_SESSION['user_type'], 'user')) {
+    error_log("Unauthorized dashboard access attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+// Rate limiting for dashboard access
+if (!isset($_SESSION['dashboard_requests'])) {
+    $_SESSION['dashboard_requests'] = 1;
+    $_SESSION['dashboard_time'] = time();
+} else {
+    if (time() - $_SESSION['dashboard_time'] < 60) { // 1 minute window
+        if ($_SESSION['dashboard_requests'] > 30) { // Max 30 requests per minute
+            error_log("Dashboard rate limit exceeded for user: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many requests. Please try again later.");
+        }
+        $_SESSION['dashboard_requests']++;
+    } else {
+        $_SESSION['dashboard_requests'] = 1;
+        $_SESSION['dashboard_time'] = time();
+    }
+}
+
+// Include database connection
+include 'dbconnect.php';
+include 'includes/header.php';
+
+try {
+    // Sanitize and validate email
+    $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
+    }
+
+    // Get user ID with prepared statement
+    $userIdQuery = "SELECT id, active FROM tbl_users WHERE email = ? AND user_type = 'user'";
     $userIdStmt = $conn->prepare($userIdQuery);
     $userIdStmt->execute([$email]);
-    $userIdResult = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($userIdStmt->rowCount() === 0) {
+        error_log("Access attempt from invalid user: " . $email);
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
 
-    $user_id = $userIdResult['id'];
+    $userData = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Verify user is active
+    if ($userData['active'] != 1) {
+        error_log("Access attempt from inactive user: " . $email);
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
 
-    // Default SQL query to load patients
-    $sql = "SELECT p.*, u.name 
-            FROM tbl_ppw p 
-            JOIN tbl_users u ON p.id = u.id 
-            WHERE p.id = ? 
-            ORDER BY p.submission_time DESC";
+    $_SESSION['user_id'] = $userData['id'];
+
+} catch (Exception $e) {
+    error_log("Error in user dashboard: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
+
+// Get user type based on email from database
+$email = $_SESSION['email'];
+
+// Get user ID based on email
+$userIdQuery = "SELECT id FROM tbl_users WHERE email = ?";
+$userIdStmt = $conn->prepare($userIdQuery);
+$userIdStmt->execute([$email]);
+$userIdResult = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+
+$user_id = $userIdResult['id'];
+
+// Default SQL query to load patients
+$sql = "SELECT p.*, u.name 
+        FROM tbl_ppw p 
+        JOIN tbl_users u ON p.id = u.id 
+        WHERE p.id = ? 
+        ORDER BY p.submission_time DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+
+// Handle deletion of patient records
+if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
+    $ppw_id = $_GET['ppw_id'];
+    try {
+        $sqldeletepatient = "DELETE FROM tbl_ppw WHERE ppw_id = ?";
+        $stmt = $conn->prepare($sqldeletepatient);
+        $stmt->execute([$ppw_id]);
+        echo "<script>alert('Patient deleted successfully.');</script>";
+        echo "<script>window.location.href='admin_dashboard.php';</script>";
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+}
+
+// Handle search functionality
+if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
+    $search_query = $_GET['search_query'];
+    $search_option = $_GET['search_option'];
+
+    if ($search_option == 'name') {
+        $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE name LIKE ?";
+    } else if ($search_option == 'email') {
+        $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE email LIKE ?";
+    }
+
+    $stmt = $conn->prepare($sqlloadpatients);
+    $stmt->execute(['%' . $search_query . '%']);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($rows) == 0) {
+        echo "<script>alert('No results found.');</script>";
+        echo "<script>window.location.href='main.php';</script>";
+    }
+} else {
+    // Pagination logic
+    $results_per_page = 10;
+    $pageno = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
+    $page_first_result = ($pageno - 1) * $results_per_page;
+
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    $number_of_results = $stmt->rowCount();
+    $number_of_pages = ceil($number_of_results / $results_per_page);
 
-    // Handle deletion of patient records
-    if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
-        $ppw_id = $_GET['ppw_id'];
-        try {
-            $sqldeletepatient = "DELETE FROM tbl_ppw WHERE ppw_id = ?";
-            $stmt = $conn->prepare($sqldeletepatient);
-            $stmt->execute([$ppw_id]);
-            echo "<script>alert('Patient deleted successfully.');</script>";
-            echo "<script>window.location.href='admin_dashboard.php';</script>";
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-        }
-    }
+    $sql .= " LIMIT :first_result, :results_per_page";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+    $stmt->bindParam(':first_result', $page_first_result, PDO::PARAM_INT);
+    $stmt->bindParam(':results_per_page', $results_per_page, PDO::PARAM_INT);
+    $stmt->execute();
 
-    // Handle search functionality
-    if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
-        $search_query = $_GET['search_query'];
-        $search_option = $_GET['search_option'];
-
-        if ($search_option == 'name') {
-            $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE name LIKE ?";
-        } else if ($search_option == 'email') {
-            $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE email LIKE ?";
-        }
-
-        $stmt = $conn->prepare($sqlloadpatients);
-        $stmt->execute(['%' . $search_query . '%']);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        if (count($rows) == 0) {
-            echo "<script>alert('No results found.');</script>";
-            echo "<script>window.location.href='main.php';</script>";
-        }
-    } else {
-        // Pagination logic
-        $results_per_page = 10;
-        $pageno = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
-        $page_first_result = ($pageno - 1) * $results_per_page;
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
-        $stmt->execute();
-        
-        $number_of_results = $stmt->rowCount();
-        $number_of_pages = ceil($number_of_results / $results_per_page);
-
-        $sql .= " LIMIT :first_result, :results_per_page";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
-        $stmt->bindParam(':first_result', $page_first_result, PDO::PARAM_INT);
-        $stmt->bindParam(':results_per_page', $results_per_page, PDO::PARAM_INT);
-        $stmt->execute();
-
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html>

@@ -1,13 +1,146 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
-if (!isset($_SESSION['email'])) {
+
+// Strict session validation
+if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
+    error_log("Unauthorized access attempt to create_paperwork.php");
     header('Location: index.php');
     exit;
 }
 
-include 'dbconnect.php';
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
+}
+
+// Rate limiting
+if (!isset($_SESSION['paperwork_submissions'])) {
+    $_SESSION['paperwork_submissions'] = 1;
+    $_SESSION['submission_time'] = time();
+} else {
+    if (time() - $_SESSION['submission_time'] < 300) { // 5 minute window
+        if ($_SESSION['paperwork_submissions'] > 5) { // Max 5 submissions per 5 minutes
+            error_log("Rate limit exceeded for user: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many submissions. Please try again later.");
+        }
+        $_SESSION['paperwork_submissions']++;
+    } else {
+        $_SESSION['paperwork_submissions'] = 1;
+        $_SESSION['submission_time'] = time();
+    }
+}
+
+// Include database connection
+try {
+    require 'dbconnect.php';
+    
+    // Verify user is active
+    $stmt = $conn->prepare("SELECT active FROM tbl_users WHERE email = ? AND active = 1");
+    $stmt->execute([$_SESSION['email']]);
+    
+    if ($stmt->rowCount() === 0) {
+        error_log("Inactive user attempted access: " . $_SESSION['email']);
+        session_destroy();
+        header('Location: index.php');
+        exit;
+    }
+} catch (PDOException $e) {
+    error_log("Database error in create_paperwork: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
+
 include 'includes/header.php';
 include 'includes/email_functions.php';
+
+/**
+ * Validates file uploads for paperwork
+ * 
+ * @param array $file $_FILES array element
+ * @return bool Returns true if file is valid
+ * @throws Exception If validation fails
+ */
+function validateFileUpload($file) {
+    // Allowed MIME types
+    $allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    // Maximum file size (5MB)
+    $maxSize = 5 * 1024 * 1024;
+
+    // Basic file checks
+    if (!isset($file['error']) || is_array($file['error'])) {
+        throw new Exception('Invalid file parameter');
+    }
+
+    // Check upload errors
+    switch ($file['error']) {
+        case UPLOAD_ERR_OK:
+            break;
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            throw new Exception('File exceeds maximum size limit');
+        case UPLOAD_ERR_PARTIAL:
+            throw new Exception('File was only partially uploaded');
+        case UPLOAD_ERR_NO_FILE:
+            throw new Exception('No file was uploaded');
+        default:
+            throw new Exception('Unknown upload error');
+    }
+
+    // Size validation
+    if ($file['size'] > $maxSize) {
+        throw new Exception('File is too large. Maximum size is 5MB');
+    }
+
+    // MIME type validation using multiple methods
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($file['tmp_name']);
+    
+    if (!in_array($mimeType, $allowedTypes, true)) {
+        throw new Exception('Invalid file type. Only PDF and DOC files are allowed');
+    }
+
+    // Additional file content check
+    $fileContent = file_get_contents($file['tmp_name'], false, null, 0, 512);
+    if ($fileContent === false) {
+        throw new Exception('Unable to read file contents');
+    }
+
+    // Check for PHP code in files
+    if (preg_match('/<\?php/i', $fileContent)) {
+        throw new Exception('File contains potentially malicious content');
+    }
+
+    return true;
+}
 
 // Get user details
 $email = $_SESSION['email'];
@@ -25,11 +158,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     $fileName = '';
     if (isset($_FILES['document']) && $_FILES['document']['error'] == 0) {
-        $fileName = time() . '_' . basename($_FILES['document']['name']);
-        $filePath = $uploadDir . $fileName;
-        
-        if (!move_uploaded_file($_FILES['document']['tmp_name'], $filePath)) {
-            echo "<script>alert('Error uploading file.');</script>";
+        try {
+            validateFileUpload($_FILES['document']);
+            $fileName = time() . '_' . basename($_FILES['document']['name']);
+            $filePath = $uploadDir . $fileName;
+            
+            if (!move_uploaded_file($_FILES['document']['tmp_name'], $filePath)) {
+                echo "<script>alert('Error uploading file.');</script>";
+                exit;
+            }
+        } catch (Exception $e) {
+            echo "<script>alert('" . $e->getMessage() . "');</script>";
             exit;
         }
     }

@@ -1,80 +1,152 @@
 <?php
+// Start session with strict settings
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
-if (!isset($_SESSION['email']) || !isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
+
+// Strict session validation with timing attack prevention
+if (!isset($_SESSION['email']) || 
+    !isset($_SESSION['user_type']) || 
+    !hash_equals($_SESSION['user_type'], 'admin')) {
+    error_log("Unauthorized paperwork view attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    session_destroy();
     header('Location: index.php');
     exit;
+}
+
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+header("Content-Security-Policy: default-src 'self'");
+header("Referrer-Policy: strict-origin-only");
+
+// Session timeout check (30 minutes)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header('Location: index.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
+
+// Session fixation prevention
+if (!isset($_SESSION['created'])) {
+    $_SESSION['created'] = time();
+} else if (time() - $_SESSION['created'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['created'] = time();
 }
 
 include 'dbconnect.php';
 include 'includes/header.php';
 include 'includes/email_functions.php';
 
+// Rate limiting for paperwork actions
+if (!isset($_SESSION['paperwork_actions'])) {
+    $_SESSION['paperwork_actions'] = 1;
+    $_SESSION['action_time'] = time();
+} else {
+    if (time() - $_SESSION['action_time'] < 300) { // 5 minute window
+        if ($_SESSION['paperwork_actions'] > 10) { // Max 10 actions per 5 minutes
+            error_log("Paperwork action rate limit exceeded for admin: " . $_SESSION['email']);
+            http_response_code(429);
+            die("Too many actions. Please try again later.");
+        }
+        $_SESSION['paperwork_actions']++;
+    } else {
+        $_SESSION['paperwork_actions'] = 1;
+        $_SESSION['action_time'] = time();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
-    $ppw_id = $_POST['ppw_id'];
-    $note = isset($_POST['admin_note']) ? trim($_POST['admin_note']) : null;
-    $user_type = $_SESSION['user_type'];
-    $current_time = date('Y-m-d H:i:s');
-
-    if ($user_type == 'hod') {
-        if ($_POST['action'] == 'approve') {
-            $sql = "UPDATE tbl_ppw SET 
-                    hod_approval = 1,
-                    hod_note = ?,
-                    hod_approval_date = ?,
-                    current_stage = 'ceo_review'
-                    WHERE ppw_id = ?";
-            $message = "Paperwork approved and forwarded to CEO";
-        } else {
-            $sql = "UPDATE tbl_ppw SET 
-                    hod_approval = 0,
-                    hod_note = ?,
-                    hod_approval_date = ?,
-                    current_stage = 'rejected'
-                    WHERE ppw_id = ?";
-            $message = "Paperwork returned for modification";
-        }
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$note, $current_time, $ppw_id]);
-
-        // Get CEO email
-        $ceoQuery = "SELECT email FROM tbl_users WHERE user_type = 'ceo' LIMIT 1";
-        $ceoStmt = $conn->prepare($ceoQuery);
-        $ceoStmt->execute();
-        $ceoEmail = $ceoStmt->fetchColumn();
-
-        if ($ceoEmail) {
-            sendCEONotificationEmail($ceoEmail, [
-                'ref_number' => $paperwork['ref_number'],
-                'project_name' => $paperwork['project_name'],
-                'hod_approval_date' => date('Y-m-d H:i:s')
-            ], $_SESSION['name']);
-        }
-    } 
-    elseif ($user_type == 'ceo') {
-        if ($_POST['action'] == 'approve') {
-            $sql = "UPDATE tbl_ppw SET 
-                    ceo_approval = 1,
-                    ceo_note = ?,
-                    ceo_approval_date = ?,
-                    current_stage = 'approved',
-                    status = 1
-                    WHERE ppw_id = ?";
-            $message = "Paperwork approved";
-        } else {
-            $sql = "UPDATE tbl_ppw SET 
-                    ceo_approval = 0,
-                    ceo_note = ?,
-                    ceo_approval_date = ?,
-                    current_stage = 'rejected'
-                    WHERE ppw_id = ?";
-            $message = "Paperwork returned for modification";
-        }
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$note, $current_time, $ppw_id]);
+    // Validate and sanitize inputs
+    $ppw_id = filter_var($_POST['ppw_id'], FILTER_VALIDATE_INT);
+    if (!$ppw_id) {
+        error_log("Invalid paperwork ID attempt: " . $_POST['ppw_id']);
+        die("Invalid paperwork ID");
     }
 
-    echo "<script>alert('$message'); window.location.href='admin_dashboard.php';</script>";
-    exit;
+    $note = isset($_POST['admin_note']) ? 
+        htmlspecialchars(trim($_POST['admin_note']), ENT_QUOTES, 'UTF-8') : null;
+    
+    $current_time = date('Y-m-d H:i:s');
+    
+    try {
+        // Verify paperwork exists and admin has permission
+        $checkStmt = $conn->prepare("SELECT ppw_id FROM tbl_ppw WHERE ppw_id = ?");
+        $checkStmt->execute([$ppw_id]);
+        
+        if ($checkStmt->rowCount() === 0) {
+            throw new Exception("Paperwork not found");
+        }
+
+        if ($_SESSION['user_type'] == 'hod') {
+            if ($_POST['action'] == 'approve') {
+                $sql = "UPDATE tbl_ppw SET 
+                        hod_approval = 1,
+                        hod_note = ?,
+                        hod_approval_date = ?,
+                        current_stage = 'ceo_review'
+                        WHERE ppw_id = ?";
+                $message = "Paperwork approved and forwarded to CEO";
+            } else {
+                $sql = "UPDATE tbl_ppw SET 
+                        hod_approval = 0,
+                        hod_note = ?,
+                        hod_approval_date = ?,
+                        current_stage = 'rejected'
+                        WHERE ppw_id = ?";
+                $message = "Paperwork returned for modification";
+            }
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$note, $current_time, $ppw_id]);
+
+            // Get CEO email
+            $ceoQuery = "SELECT email FROM tbl_users WHERE user_type = 'ceo' LIMIT 1";
+            $ceoStmt = $conn->prepare($ceoQuery);
+            $ceoStmt->execute();
+            $ceoEmail = $ceoStmt->fetchColumn();
+
+            if ($ceoEmail) {
+                sendCEONotificationEmail($ceoEmail, [
+                    'ref_number' => $paperwork['ref_number'],
+                    'project_name' => $paperwork['project_name'],
+                    'hod_approval_date' => date('Y-m-d H:i:s')
+                ], $_SESSION['name']);
+            }
+        } 
+        elseif ($_SESSION['user_type'] == 'ceo') {
+            if ($_POST['action'] == 'approve') {
+                $sql = "UPDATE tbl_ppw SET 
+                        ceo_approval = 1,
+                        ceo_note = ?,
+                        ceo_approval_date = ?,
+                        current_stage = 'approved',
+                        status = 1
+                        WHERE ppw_id = ?";
+                $message = "Paperwork approved";
+            } else {
+                $sql = "UPDATE tbl_ppw SET 
+                        ceo_approval = 0,
+                        ceo_note = ?,
+                        ceo_approval_date = ?,
+                        current_stage = 'rejected'
+                        WHERE ppw_id = ?";
+                $message = "Paperwork returned for modification";
+            }
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$note, $current_time, $ppw_id]);
+        }
+
+        echo "<script>alert('$message'); window.location.href='admin_dashboard.php';</script>";
+        exit;
+    } catch (Exception $e) {
+        error_log("Error processing paperwork action: " . $e->getMessage());
+        die("An error occurred while processing your request.");
+    }
 }
 
 if (isset($_GET['ppw_id'])) {
