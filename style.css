@@ -703,6 +703,9 @@ footer {
     --border-color: #dee2e6;
     --card-bg: #ffffff;
     --navbar-bg: #ffffff;
+    --table-bg: #ffffff;
+    --table-hover-bg: #f8f9fa;
+    --table-striped-bg: #f9f9f9;
 }
 
 /* Dark theme variables */
@@ -714,6 +717,9 @@ footer {
     --border-color: #404040;
     --card-bg: #2d2d2d;
     --navbar-bg: #2d2d2d;
+    --table-bg: #2d2d2d;
+    --table-hover-bg: #363636;
+    --table-striped-bg: #333333;
 }
 
 /* Apply theme variables */
@@ -738,6 +744,7 @@ body {
 /* Tables Dark Mode */
 .table {
     color: var(--text-primary);
+    background-color: var(--table-bg);
 }
 
 .table thead th {
@@ -747,6 +754,31 @@ body {
 
 .table td {
     border-color: var(--border-color);
+}
+
+.table tbody tr {
+    background-color: var(--table-bg);
+    color: var(--text-primary);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg) !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--table-hover-bg) !important;
+    color: var(--text-primary);
+}
+
+.table td, .table th {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary);
+}
+
+.table thead th {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color) !important;
 }
 
 /* Modal Dark Mode */
@@ -889,27 +921,34 @@ body {
 
 .card .list-group-item {
     background-color: var(--card-bg) !important;
-    border-color: var(--card-border) !important;
+    border-color: var (--card-border) !important;
     color: var(--text-primary) !important;
 }
 
 /* Tables */
 .table {
     color: var(--text-primary) !important;
+    background-color: var(--table-bg) !important;
 }
 
 .table thead th {
     background-color: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-color);
+    border-bottom: 2px solid var(--border-color) !important;
 }
 
 .table td, .table th {
     border-color: var(--border-color) !important;
+    color: var(--text-primary);
 }
 
 .table-hover tbody tr:hover {
-    background-color: var(--table-hover) !important;
+    background-color: var(--table-hover-bg) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg) !important;
 }
 
 /* Forms */
@@ -984,4 +1023,128 @@ body {
 
 .bg-white {
     background-color: var(--bg-primary) !important;
+}
+
+/* Dark theme specific table styles */
+[data-theme="dark"] {
+    --table-bg: #212529;
+    --table-hover-bg: #2c3034;
+    --table-striped-bg: #2a2e32;
+    --table-border-color: #373b3e;
+    --table-head-bg: #343a40;
+    --table-body-bg: #212529;
+}
+
+/* Table base styles */
+.table {
+    background-color: var(--table-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Table body specific styles */
+.table tbody {
+    background-color: var(--table-body-bg) !important;
+}
+
+.table tbody tr {
+    background-color: var(--table-body-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border-color) !important;
+}
+
+/* Table cells in body */
+.table tbody td {
+    background-color: var(--table-body-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border-color) !important;
+}
+
+/* Striped rows in dark mode */
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg) !important;
+}
+
+/* Hover effect in dark mode */
+[data-theme="dark"] .table-hover tbody tr:hover {
+    background-color: var(--table-hover-bg) !important;
+}
+
+/* Table header */
+.table thead th {
+    background-color: var(--table-head-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border-color) !important;
+}
+
+/* Table body rows */
+.table tbody tr {
+    background-color: var(--table-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Striped rows */
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: var(--table-striped-bg) !important;
+}
+
+/* Hover effect */
+.table-hover > tbody > tr:hover {
+    background-color: var(--table-hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Table borders */
+.table td,
+.table th {
+    border-color: var(--table-border-color) !important;
+}
+
+/* Card tables - ensure proper contrast */
+.card .table {
+    margin-bottom: 0;
+}
+
+[data-theme="dark"] .card .table {
+    border-color: var(--table-border-color);
+}
+
+/* Settings modal button styles for dark theme */
+[data-theme="dark"] .modal-content .btn-light {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .modal-content .btn-light:hover {
+    background-color: var(--table-hover-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .modal-content .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .dropdown-menu .btn-link {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .form-select {
+    background-color: var(--table-body-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border-color) !important;
+}
+
+[data-theme="dark"] .form-select option {
+    background-color: var(--table-body-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: var(--table-body-bg) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--table-border-color) !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+    background-color: var(--table-hover-bg) !important;
 }
