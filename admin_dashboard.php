@@ -91,11 +91,23 @@ include 'includes/header.php';
 // Get user type based on email from database
 $email = $_SESSION['email'];
 
-// Load patients
-$sqlloadpatients = "SELECT p.*, u.name FROM tbl_ppw p JOIN tbl_users u ON p.id = u.id ORDER BY p.submission_time DESC";
-$stmt = $conn->prepare($sqlloadpatients);
-$stmt->execute();
-$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Load patients with safe column handling
+$sqlloadpatients = "SELECT 
+    p.*,
+    u.name,
+    u.email,
+    COALESCE(u.phone, 'Not provided') as phone
+FROM tbl_ppw p 
+JOIN tbl_users u ON p.id = u.id 
+ORDER BY p.submission_time DESC";
+try {
+    $stmt = $conn->prepare($sqlloadpatients);
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Database error in admin_dashboard: " . $e->getMessage());
+    $rows = [];
+}
 
 // Handle delete request
 if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
@@ -434,11 +446,11 @@ $rows = $stmt->fetchAll();
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><b>Your ID:</b> <?php echo $row['ppw_id']; ?></p>
-                    <p><b>Name:</b> <?php echo $row['name']; ?></p>
-                    <p><b>Email:</b> <?php echo $row['email']; ?></p>
-                    <p><b>Phone:</b> <?php echo $row['phone']; ?></p>
-                    <p><b>Address:</b> <?php echo $row['address']; ?></p>
+                    <p><b>Your ID:</b> <?php echo htmlspecialchars($row['ppw_id']); ?></p>
+                    <p><b>Name:</b> <?php echo htmlspecialchars($row['name'] ?? 'N/A'); ?></p>
+                    <p><b>Email:</b> <?php echo htmlspecialchars($row['email'] ?? 'N/A'); ?></p>
+                    <p><b>Phone:</b> <?php echo htmlspecialchars($row['phone'] ?? 'N/A'); ?></p>
+                    <p><b>Address:</b> <?php echo htmlspecialchars($row['address'] ?? 'N/A'); ?></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
