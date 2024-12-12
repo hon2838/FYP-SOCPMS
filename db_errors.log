@@ -104,3 +104,4 @@ Stack trace:
 [12-Dec-2024 11:14:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:85) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 21
 [12-Dec-2024 11:14:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:85) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 22
 [12-Dec-2024 11:14:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:85) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 23
+[12-Dec-2024 10:32:27 UTC] Database connection error: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for db failed: Name or service not known

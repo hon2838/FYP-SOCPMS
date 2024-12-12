@@ -1,0 +1,29 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./uploads:/var/www/html/uploads
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=soc_pms
+      - DB_USER=root
+      - DB_PASS=
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=soc_pms
+      - MYSQL_ROOT_PASSWORD=
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/soc_pms.sql:/docker-entrypoint-initdb.d/soc_pms.sql
+
+volumes:
+  mysql_data:
