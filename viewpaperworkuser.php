@@ -19,12 +19,7 @@ if (!isset($_SESSION['email']) ||
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
-header("Content-Security-Policy: default-src 'self'; 
-    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net/; 
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net/;
-    font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-    img-src 'self' data: https:;
-    connect-src 'self';");
+
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
 // Session timeout check (30 minutes)
