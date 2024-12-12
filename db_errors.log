@@ -1,3 +1,45 @@
 [12-Dec-2024 07:59:20 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: NO)
 [12-Dec-2024 08:07:14 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: YES)
 [12-Dec-2024 08:07:19 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: YES)
+[12-Dec-2024 08:11:40 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:14:18 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:18:28 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:18:36 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:18:36 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'active' in 'field list' in C:\xampp\htdocs\FYP-SOCPMS\index.php:61
+Stack trace:
+#0 C:\xampp\htdocs\FYP-SOCPMS\index.php(61): PDO->prepare('SELECT id, emai...')
+#1 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 61
+[12-Dec-2024 08:18:45 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:18:51 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:18:51 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'active' in 'field list' in C:\xampp\htdocs\FYP-SOCPMS\index.php:61
+Stack trace:
+#0 C:\xampp\htdocs\FYP-SOCPMS\index.php(61): PDO->prepare('SELECT id, emai...')
+#1 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 61
+[12-Dec-2024 08:22:04 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:22:11 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:22:11 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'active' in 'field list' in C:\xampp\htdocs\FYP-SOCPMS\index.php:61
+Stack trace:
+#0 C:\xampp\htdocs\FYP-SOCPMS\index.php(61): PDO->prepare('SELECT id, emai...')
+#1 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 61
+[12-Dec-2024 08:23:16 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:23:22 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:23:22 Europe/Berlin] Failed login attempt for email: joanchoo2201@hotmail.com
+[12-Dec-2024 08:25:05 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:25:09 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:25:09 Europe/Berlin] Failed login attempt for email: joanchoo2201@hotmail.com
+[12-Dec-2024 08:25:21 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:25:21 Europe/Berlin] Login rate limit exceeded for IP: ::1
+[12-Dec-2024 08:27:51 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:27:51 Europe/Berlin] PHP Warning:  Undefined array key "attempt_ip" in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 27
+[12-Dec-2024 08:27:58 Europe/Berlin] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\FYP-SOCPMS\index.php on line 14
+[12-Dec-2024 08:27:58 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[12-Dec-2024 08:27:58 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[12-Dec-2024 08:27:58 Europe/Berlin] PHP Warning:  Undefined array key "email" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 439
+[12-Dec-2024 08:27:58 Europe/Berlin] PHP Warning:  Undefined array key "phone" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 440
+[12-Dec-2024 08:27:58 Europe/Berlin] PHP Warning:  Undefined array key "address" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 441
+[12-Dec-2024 08:28:40 Europe/Berlin] PHP Warning:  Undefined array key "email" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 439
+[12-Dec-2024 08:28:40 Europe/Berlin] PHP Warning:  Undefined array key "phone" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 440
+[12-Dec-2024 08:28:40 Europe/Berlin] PHP Warning:  Undefined array key "address" in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 441

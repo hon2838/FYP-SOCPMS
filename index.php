@@ -17,15 +17,21 @@ header("Content-Security-Policy: default-src 'self';
     font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
     img-src 'self' data: https:;
     connect-src 'self';");
-header("Referrer-Policy: strict-origin-only");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Rate limiting for login attempts
+// Enhanced rate limiting with IP tracking
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 1;
     $_SESSION['first_attempt'] = time();
+    $_SESSION['attempt_ip'] = $_SERVER['REMOTE_ADDR'];
+} else if ($_SESSION['attempt_ip'] !== $_SERVER['REMOTE_ADDR']) {
+    // Reset if IP changes
+    $_SESSION['login_attempts'] = 1;
+    $_SESSION['first_attempt'] = time();
+    $_SESSION['attempt_ip'] = $_SERVER['REMOTE_ADDR'];
 } else {
     if (time() - $_SESSION['first_attempt'] < 300) { // 5 minute window
-        if ($_SESSION['login_attempts'] > 5) { // Max 5 attempts per 5 minutes
+        if ($_SESSION['login_attempts'] > 5) {
             error_log("Login rate limit exceeded for IP: " . $_SERVER['REMOTE_ADDR']);
             die("Too many login attempts. Please try again later.");
         }
@@ -72,12 +78,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 // Execute with timing attack protection
                 if ($stmt->execute()) {
-                    if ($stmt->rowCount() === 1) {
+                    if ($stmt->rowCount() === 0) {
+                        error_log("Login attempt with non-existent email: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
+                        sleep(1); // Prevent brute force
+                        $email_err = "Invalid email or password"; // Generic error for security
+                    } else {
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                        // Verify password with timing attack protection
-                        if (hash_equals(hash('sha256', $row['password']), hash('sha256', $_POST['password']))) {
+                        if (password_verify($password, $row['password'])) {
                             if ($row['active'] == 1) {
+                                // Success - log the successful login
+                                error_log("Successful login: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
                                 // Start new session and regenerate ID
                                 session_regenerate_id(true);
 
@@ -100,19 +110,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 header('Location: ' . ($row['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'));
                                 exit;
                             } else {
-                                error_log("Login attempt on inactive account: " . $row['email']);
-                                die("Account is inactive");
+                                error_log("Login attempt on inactive account: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
+                                $login_err = "Account is inactive";
                             }
                         } else {
-                            // Log failed attempt
-                            error_log("Failed login attempt for email: " . $email);
-                            sleep(1); // Prevent brute force
-                            $password_err = "Invalid password";
+                            error_log("Failed password attempt for email: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
+                            sleep(1);
+                            $password_err = "Invalid email or password"; // Generic error for security
                         }
-                    } else {
-                        error_log("Login attempt with non-existent email: " . $email);
-                        sleep(1); // Prevent brute force
-                        $email_err = "Email not found";
                     }
                 }
             } catch (PDOException $e) {

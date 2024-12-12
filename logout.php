@@ -37,7 +37,7 @@ header("Content-Security-Policy: default-src 'self';
     font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
     img-src 'self' data: https:;
     connect-src 'self';");
-header("Referrer-Policy: strict-origin-only");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 

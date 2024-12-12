@@ -24,10 +24,19 @@ header("Content-Security-Policy: default-src 'self';
     font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
     img-src 'self' data: https:;
     connect-src 'self';");
-header("Referrer-Policy: strict-origin-only");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
 // Include database connection
 include 'dbconnect.php';
+
+// Helper function for string sanitization
+function sanitizeString($string) {
+    return htmlspecialchars(
+        trim($string),
+        ENT_QUOTES | ENT_HTML5,
+        'UTF-8'
+    );
+}
 
 // Rate limiting
 if (!isset($_SESSION['edit_attempts'])) {
@@ -50,9 +59,9 @@ if (!isset($_SESSION['edit_attempts'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Input validation and sanitization
     $id = filter_var(trim($_POST['id']), FILTER_VALIDATE_INT);
-    $name = filter_var(trim($_POST['name']), FILTER_SANITIZE_STRING);
+    $name = sanitizeString($_POST['name']);
     $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
-    $user_type = filter_var(trim($_POST['user_type']), FILTER_SANITIZE_STRING);
+    $user_type = sanitizeString($_POST['user_type']);
     
     // Additional validation
     if (!$id || $id <= 0) {

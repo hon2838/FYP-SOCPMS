@@ -22,7 +22,7 @@ header("Content-Security-Policy: default-src 'self';
     font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
     img-src 'self' data: https:;
     connect-src 'self';");
-header("Referrer-Policy: strict-origin-only");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
 // Session timeout check (30 minutes)
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
