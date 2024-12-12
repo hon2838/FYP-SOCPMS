@@ -9,7 +9,18 @@ session_start();
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'admin')) {
-    error_log("Unauthorized edit user attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    $email = $_SESSION['email'] ?? 'unknown';
+    error_log("Unauthorized edit user attempt: " . $email);
+    
+    // Notify admin about unauthorized access
+    notifySystemError(
+        'Unauthorized Access',
+        "Unauthorized attempt to edit user by: $email",
+        __FILE__,
+        __LINE__
+    );
+    
+    session_destroy();
     header('Location: index.php');
     exit;
 }
@@ -23,6 +34,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 // Include database connection
 include 'dbconnect.php';
+require_once 'telegram/telegram_handlers.php';
 
 // Helper function for string sanitization
 function sanitizeString($string) {
@@ -52,71 +64,49 @@ if (!isset($_SESSION['edit_attempts'])) {
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Input validation and sanitization
-    $id = filter_var(trim($_POST['id']), FILTER_VALIDATE_INT);
-    $name = sanitizeString($_POST['name']);
-    $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
-    $user_type = sanitizeString($_POST['user_type']);
-    
-    // Additional validation
-    if (!$id || $id <= 0) {
-        die("Invalid user ID");
-    }
-    
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die("Invalid email format");
-    }
-    
-    if (!in_array($user_type, ['admin', 'user'])) {
-        die("Invalid user type");
-    }
-    
     try {
-        // Verify user exists and prevent timing attacks
-        $checkStmt = $conn->prepare("SELECT id FROM tbl_users WHERE id = ? LIMIT 1");
-        $checkStmt->execute([$id]);
-        
-        if ($checkStmt->rowCount() === 0) {
-            error_log("Attempt to edit non-existent user: {$id}");
-            die("User not found");
+        // Validate and sanitize input
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $name = htmlspecialchars(trim($_POST['name']), ENT_QUOTES, 'UTF-8');
+        $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+        $user_type = htmlspecialchars(trim($_POST['user_type']), ENT_QUOTES, 'UTF-8');
+
+        if (!$id || !$name || !$email || !$user_type) {
+            throw new Exception("Invalid input parameters");
         }
+
+        include 'dbconnect.php';
         
-        // Prevent duplicate email
-        $emailCheckStmt = $conn->prepare("SELECT id FROM tbl_users WHERE email = ? AND id != ? LIMIT 1");
-        $emailCheckStmt->execute([$email, $id]);
+        // Update user
+        $stmt = $conn->prepare("UPDATE tbl_users SET name = ?, email = ?, user_type = ? WHERE id = ?");
         
-        if ($emailCheckStmt->rowCount() > 0) {
-            die("Email already exists");
+        if (!$stmt->execute([$name, $email, $user_type, $id])) {
+            throw new Exception("Failed to update user");
         }
-        
-        // Start transaction
-        $conn->beginTransaction();
-        
-        // Update user data with prepared statement
-        $updateSql = "UPDATE tbl_users SET name = ?, email = ?, user_type = ? WHERE id = ?";
-        $updateStmt = $conn->prepare($updateSql);
-        $updateStmt->execute([$name, $email, $user_type, $id]);
-        
-        // Update password if provided
-        if (!empty($_POST['password'])) {
-            if (strlen($_POST['password']) < 8) {
-                throw new Exception("Password must be at least 8 characters long");
-            }
-            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            $passwordSql = "UPDATE tbl_users SET password = ? WHERE id = ?";
-            $passwordStmt = $conn->prepare($passwordSql);
-            $passwordStmt->execute([$password, $id]);
-        }
-        
-        $conn->commit();
-        
-        // Log successful update
-        error_log("User {$id} updated successfully by admin: " . $_SESSION['email']);
-        
+
+        // Notify admin about successful user modification
+        notifySystemError(
+            'User Modified',
+            "User ID: $id modified by admin: {$_SESSION['email']}\nNew details: Name: $name, Email: $email, Type: $user_type",
+            __FILE__,
+            __LINE__
+        );
+
+        header('Location: admin_manage_account.php');
+        exit();
+
     } catch (Exception $e) {
-        $conn->rollBack();
-        error_log("Error updating user: " . $e->getMessage());
-        die("An error occurred. Please try again later.");
+        error_log("User edit error: " . $e->getMessage());
+        
+        // Notify admin about error
+        notifySystemError(
+            'Database Error',
+            $e->getMessage(),
+            __FILE__,
+            __LINE__
+        );
+        
+        die("An error occurred while updating user. Please try again later.");
     }
 }
 ?>

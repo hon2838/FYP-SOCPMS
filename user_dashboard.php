@@ -1,15 +1,28 @@
 <?php
+require_once 'telegram/telegram_handlers.php';
+
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 session_start();
 
-// Strict session validation
+// Strict session validation with notification
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'user')) {
-    error_log("Unauthorized dashboard access attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    
+    $email = $_SESSION['email'] ?? 'unknown';
+    error_log("Unauthorized dashboard access attempt: " . $email);
+    
+    // Notify admin about unauthorized access
+    notifySystemError(
+        'Unauthorized Access',
+        "Unauthorized attempt to access user dashboard\nEmail: $email\nIP: {$_SERVER['REMOTE_ADDR']}",
+        __FILE__,
+        __LINE__
+    );
+    
     session_destroy();
     header('Location: index.php');
     exit;
@@ -23,9 +36,18 @@ header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
 
-// Session timeout check (30 minutes)
-if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
-    session_unset();
+// Session timeout check with notification
+if (isset($_SESSION['last_activity']) && 
+    (time() - $_SESSION['last_activity'] > 1800)) {
+    
+    // Notify about session timeout
+    notifySystemError(
+        'Session Timeout',
+        "User session timed out\nEmail: {$_SESSION['email']}\nIP: {$_SERVER['REMOTE_ADDR']}",
+        __FILE__,
+        __LINE__
+    );
+    
     session_destroy();
     header('Location: index.php');
     exit;

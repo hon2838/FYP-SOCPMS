@@ -43,6 +43,14 @@ try {
         throw new PDOException('Database connection test failed');
     }
 
+    // Add after database connection
+    require_once 'telegram_bot.php';
+
+    $telegram = new TelegramBot(
+        getenv('TELEGRAM_BOT_TOKEN') ?: 'your_bot_token_here',
+        getenv('TELEGRAM_CHAT_ID') ?: 'your_chat_id_here'
+    );
+
 } catch(PDOException $e) {
     // Log error securely
     error_log("Database connection error: " . $e->getMessage());
