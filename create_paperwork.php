@@ -163,8 +163,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $fileName = time() . '_' . basename($_FILES['document']['name']);
             $filePath = $uploadDir . $fileName;
             
-            if (!move_uploaded_file($_FILES['document']['tmp_name'], $filePath)) {
-                echo "<script>alert('Error uploading file.');</script>";
+            try {
+                if (!validateFileUpload($_FILES['document'])) {
+                    throw new Exception("Invalid file upload", ErrorCodes::FILE_UPLOAD_FAILED);
+                }
+                
+                if ($_FILES['document']['size'] > 10485760) { // 10MB
+                    throw new Exception("File size exceeds limit", ErrorCodes::FILE_SIZE_EXCEEDED);
+                }
+                
+                if (!move_uploaded_file($_FILES['document']['tmp_name'], $filePath)) {
+                    throw new Exception("Failed to save file", ErrorCodes::FILE_UPLOAD_FAILED);
+                }
+                
+            } catch (Exception $e) {
+                ErrorHandler::getInstance()->handleError($e);
                 exit;
             }
         } catch (Exception $e) {

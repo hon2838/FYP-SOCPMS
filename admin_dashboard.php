@@ -5,6 +5,17 @@ ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 session_start();
 
+// Include required files in correct order
+require_once 'includes/functions.php';      // Add functions first
+require_once 'includes/ErrorCodes.php';     // Then error codes
+require_once 'includes/ErrorHandler.php';    // Then error handler
+require_once 'dbconnect.php';               // Then database connection
+require_once 'includes/RBAC.php'; 
+
+// Initialize error handler and RBAC
+$errorHandler = ErrorHandler::getInstance();
+$rbac = new RBAC($conn);
+
 // Enable error logging
 error_log("Admin Dashboard Session: " . print_r($_SESSION, true));
 
@@ -15,6 +26,16 @@ if (!isset($_SESSION['email']) ||
     error_log("Admin access denied: " . print_r($_SESSION, true));
     session_destroy();
     header('Location: index.php');
+    exit;
+}
+
+// Now check permission using try-catch with proper error handling
+try {
+    if (!$rbac->checkPermission('view_admin_dashboard')) {
+        throw new Exception("Access denied to admin dashboard", ErrorCodes::PERMISSION_DENIED);
+    }
+} catch (Exception $e) {
+    $errorHandler->handleError($e, 'index.php');
     exit;
 }
 

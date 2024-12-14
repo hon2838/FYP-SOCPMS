@@ -105,3 +105,567 @@ Stack trace:
 [12-Dec-2024 11:14:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:85) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 22
 [12-Dec-2024 11:14:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:85) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 23
 [12-Dec-2024 10:32:27 UTC] Database connection error: SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo for db failed: Name or service not known
+[14-Dec-2024 17:57:57 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 17:57:57 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:00:11 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195477
+)
+
+[14-Dec-2024 18:00:11 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:00:11 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function handlePermissionError() in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:30
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 30
+[14-Dec-2024 18:00:13 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195477
+)
+
+[14-Dec-2024 18:00:13 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:00:13 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function handlePermissionError() in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:30
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 30
+[14-Dec-2024 18:00:19 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 18:00:19 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:00:19 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195619
+)
+
+[14-Dec-2024 18:00:19 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:00:19 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function handlePermissionError() in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:30
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 30
+[14-Dec-2024 18:02:07 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195619
+)
+
+[14-Dec-2024 18:02:07 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:02:07 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "ErrorCodes" not found in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:32
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 32
+[14-Dec-2024 18:02:08 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195619
+)
+
+[14-Dec-2024 18:02:08 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:02:08 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "ErrorCodes" not found in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:32
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 32
+[14-Dec-2024 18:02:14 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 18:02:14 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:02:14 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195734
+)
+
+[14-Dec-2024 18:02:14 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:02:14 Europe/Berlin] PHP Fatal error:  Uncaught Error: Class "ErrorCodes" not found in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php:32
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php on line 32
+[14-Dec-2024 18:03:21 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195734
+    [error_stats] => Array
+        (
+            [count] => 0
+            [types] => Array
+                (
+                )
+
+            [last_error] => 
+        )
+
+)
+
+[14-Dec-2024 18:03:21 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:03:28 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 18:03:28 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:03:28 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734195808
+    [error_stats] => Array
+        (
+            [count] => 1
+            [types] => Array
+                (
+                    [1200] => 1
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:21
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+)
+
+[14-Dec-2024 18:03:28 Europe/Berlin] Permission denied: view_admin_dashboard for user joanchoo2201@hotmail.com
+[14-Dec-2024 18:07:03 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 18:07:03 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:07:03 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196023
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+)
+
+[14-Dec-2024 18:07:03 Europe/Berlin] PHP Fatal error:  Cannot redeclare sanitizeInput() (previously declared in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php:62) in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 66
+[14-Dec-2024 18:09:25 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196023
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196023
+)
+
+[14-Dec-2024 18:09:25 Europe/Berlin] PHP Fatal error:  Cannot redeclare sanitizeInput() (previously declared in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php:59) in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 63
+[14-Dec-2024 18:09:32 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[14-Dec-2024 18:09:32 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[14-Dec-2024 18:09:32 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196172
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196165
+)
+
+[14-Dec-2024 18:09:32 Europe/Berlin] PHP Fatal error:  Cannot redeclare sanitizeInput() (previously declared in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php:59) in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 63
+[14-Dec-2024 18:14:40 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196172
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 2
+    [request_time] => 1734196165
+)
+
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:14:40 Europe/Berlin] PHP Fatal error:  Uncaught Error: Cannot access private property ErrorCodes::$ERROR_MESSAGES in C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:37
+Stack trace:
+#0 C:\xampp\htdocs\FYP-SOCPMS\admin_dashboard.php(104): include()
+#1 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\includes\header.php on line 37
+[14-Dec-2024 18:16:26 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196480
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196480
+)
+
+[14-Dec-2024 18:16:26 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:16:26 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:16:26 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:16:26 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:16:26 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:18:42 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196717
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196586
+    [login_attempts] => 1
+    [first_attempt] => 1734196717
+)
+
+[14-Dec-2024 18:18:42 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:18:42 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:18:42 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:18:42 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:18:42 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:18:45 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196724
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196722
+    [login_attempts] => 2
+    [first_attempt] => 1734196717
+)
+
+[14-Dec-2024 18:18:45 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:18:45 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:18:45 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:18:45 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:18:45 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:21:10 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734196725
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 2
+    [request_time] => 1734196722
+    [login_attempts] => 2
+    [first_attempt] => 1734196717
+)
+
+[14-Dec-2024 18:21:10 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:21:10 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:21:10 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:21:10 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:21:10 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:21:49 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:21:49 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:21:49 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:24:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:24:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:24:07 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:25:20 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734197047
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734196870
+    [login_attempts] => 5
+    [first_attempt] => 1734196717
+)
+
+[14-Dec-2024 18:25:20 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:25:20 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:25:20 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:25:20 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:25:20 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:26:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:26:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:26:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:26:35 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:26:35 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:26:35 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:26:55 Europe/Berlin] Admin Dashboard Session: Array
+(
+    [attempt_ip] => ::1
+    [loggedin] => 1
+    [id] => 1
+    [email] => joanchoo2201@hotmail.com
+    [user_type] => admin
+    [name] => HON JUN YOON
+    [last_activity] => 1734197195
+    [error_stats] => Array
+        (
+            [count] => 2
+            [types] => Array
+                (
+                    [1200] => 2
+                )
+
+            [last_error] => Array
+                (
+                    [timestamp] => 2024-12-14 18:03:28
+                    [code] => 1200
+                )
+
+        )
+
+    [error_message] => Access denied to admin dashboard
+    [created] => 1734196023
+    [request_count] => 1
+    [request_time] => 1734197120
+    [login_attempts] => 7
+    [first_attempt] => 1734196717
+)
+
+[14-Dec-2024 18:26:55 Europe/Berlin] PHP Warning:  Constant DB_HOST already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 6
+[14-Dec-2024 18:26:55 Europe/Berlin] PHP Warning:  Constant DB_NAME already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 7
+[14-Dec-2024 18:26:55 Europe/Berlin] PHP Warning:  Constant DB_USER already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 8
+[14-Dec-2024 18:26:55 Europe/Berlin] PHP Warning:  Constant DB_PASS already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 9
+[14-Dec-2024 18:26:55 Europe/Berlin] PHP Warning:  Constant DB_CHARSET already defined in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 10
+[14-Dec-2024 18:26:57 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:26:57 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:26:57 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:27:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:27:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:27:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:31:01 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:31:01 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:31:01 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Undefined variable $role in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Undefined variable $role in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Undefined variable $role in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 251
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Undefined variable $role in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:32:02 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 252
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  session_regenerate_id(): Session ID cannot be regenerated after headers have already been sent in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 112
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 264
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
+[14-Dec-2024 18:37:13 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265

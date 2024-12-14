@@ -1,7 +1,67 @@
 <?php 
+require_once 'includes/ErrorCodes.php';
+require_once 'includes/ErrorHandler.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Update the error handling function
+function handleActionError($error) {
+    if ($error instanceof Exception) {
+        $errorData = [
+            'error' => true,
+            'code' => $error->getCode() ?: ErrorCodes::DB_QUERY_FAILED,
+            'message' => $error->getMessage(),
+            'details' => ErrorCodes::getMessage($error->getCode()),
+            'timestamp' => date('Y-m-d H:i:s'),
+            'trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)
+        ];
+    } else {
+        $errorData = [
+            'error' => true,
+            'code' => ErrorCodes::DB_QUERY_FAILED,
+            'message' => 'An unexpected error occurred',
+            'details' => ErrorCodes::getMessage(ErrorCodes::DB_QUERY_FAILED),
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+    }
+    
+    error_log(json_encode($errorData));
+    return $errorData;
+}
+
+// Add client-side error handling
+echo "<script>
+const ErrorCodes = " . json_encode(array_flip((new ReflectionClass('ErrorCodes'))->getConstants())) . ";
+const ErrorMessages = " . json_encode(ErrorCodes::getAllMessages()) . ";
+
+function handleClientError(response) {
+    if (response.error) {
+        const message = ErrorMessages[response.code] || response.message;
+        showErrorAlert(message);
+    }
+}
+
+function showErrorAlert(message) {
+    const errorAlert = document.getElementById('errorAlert') || createErrorAlert();
+    errorAlert.textContent = message;
+    errorAlert.classList.remove('d-none');
+    
+    setTimeout(() => {
+        errorAlert.classList.add('d-none');
+    }, 5000);
+}
+
+function createErrorAlert() {
+    const alert = document.createElement('div');
+    alert.id = 'errorAlert';
+    alert.className = 'alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-3';
+    alert.setAttribute('role', 'alert');
+    document.body.appendChild(alert);
+    return alert;
+}
+</script>";
 ?>
 <!DOCTYPE html>
 <html>

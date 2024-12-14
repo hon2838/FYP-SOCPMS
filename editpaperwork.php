@@ -12,6 +12,11 @@ if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
     exit;
 }
 
+// Add after session validation
+if (!$rbac->checkPermission('edit_paperwork')) {
+    handlePermissionError('edit_paperwork', 'user_dashboard.php');
+}
+
 // Set security headers
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");

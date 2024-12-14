@@ -8,10 +8,14 @@ session_start();
 // Strict session validation with timing attack prevention
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
-    !hash_equals($_SESSION['user_type'], 'admin')) {
+    !$rbac->checkPermission('manage_users')) {
     error_log("Unauthorized edit user attempt: " . ($_SESSION['email'] ?? 'unknown'));
     header('Location: index.php');
     exit;
+}
+
+if (!$rbac->checkPermission('manage_users')) {
+    handlePermissionError('manage_users', 'admin_manage_account.php');
 }
 
 // Set security headers
@@ -52,6 +56,24 @@ if (!isset($_SESSION['edit_attempts'])) {
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        if (!$rbac->checkPermission('manage_users')) {
+            throw new Exception("Permission denied", ErrorCodes::PERMISSION_DENIED);
+        }
+        
+        if (empty($_POST['id'])) {
+            throw new Exception("User ID is required", ErrorCodes::INPUT_REQUIRED_MISSING);
+        }
+        
+        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Invalid email format", ErrorCodes::INPUT_INVALID_FORMAT);
+        }
+        
+    } catch (Exception $e) {
+        echo ErrorHandler::getInstance()->handleError($e);
+        exit;
+    }
+    
     // Input validation and sanitization
     $id = filter_var(trim($_POST['id']), FILTER_VALIDATE_INT);
     $name = sanitizeString($_POST['name']);

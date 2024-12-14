@@ -61,6 +61,24 @@ if (!isset($_SESSION['paperwork_actions'])) {
     }
 }
 
+// Add permission checks based on action
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
+    $requiredPermission = match($_SESSION['user_type']) {
+        'hod' => 'approve_hod_paperwork',
+        'ceo' => 'approve_ceo_paperwork',
+        default => 'view_paperwork'
+    };
+    
+    if (!$rbac->checkPermission($requiredPermission)) {
+        http_response_code(403);
+        echo json_encode([
+            'error' => true,
+            'message' => 'You do not have permission to perform this action'
+        ]);
+        exit;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     // Validate and sanitize inputs
     $ppw_id = filter_var($_POST['ppw_id'], FILTER_VALIDATE_INT);
@@ -165,6 +183,22 @@ if (isset($_GET['ppw_id'])) {
     }
 } else {
     echo "<script>alert('No Paperwork ID provided.'); window.location.href='admin_dashboard.php';</script>";
+    exit;
+}
+
+try {
+    if (!isset($_POST['ppw_id']) || !filter_var($_POST['ppw_id'], FILTER_VALIDATE_INT)) {
+        throw new Exception("Invalid paperwork ID", ErrorCodes::INPUT_INVALID_FORMAT);
+    }
+    
+    // Verify paperwork exists
+    $checkStmt = $conn->prepare("SELECT ppw_id FROM tbl_ppw WHERE ppw_id = ?");
+    if (!$checkStmt->execute([$ppw_id])) {
+        throw new Exception("Paperwork not found", ErrorCodes::PAPERWORK_NOT_FOUND);
+    }
+    
+} catch (Exception $e) {
+    echo ErrorHandler::getInstance()->handleError($e);
     exit;
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
-// dbconnect.php
+// Include functions first
+require_once 'includes/functions.php';
 
 // Define database credentials as constants
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
@@ -28,7 +29,7 @@ try {
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . DB_CHARSET,
         PDO::ATTR_PERSISTENT => false,
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
-        PDO::ATTR_TIMEOUT => 5, // Connection timeout in seconds
+        PDO::ATTR_TIMEOUT => 5
     ];
 
     // Create PDO instance
@@ -38,42 +39,16 @@ try {
     $conn->exec("SET SESSION sql_mode = 'STRICT_ALL_TABLES'");
     $conn->exec("SET SESSION time_zone = '+00:00'");
     
-    // Verify connection is alive
-    if (!$conn->query('SELECT 1')) {
-        throw new PDOException('Database connection test failed');
-    }
+    // After PDO connection
+    require_once 'includes/RBAC.php';
+    $rbac = new RBAC($conn);
+
+    // Make RBAC available globally if needed
+    global $rbac;
 
 } catch(PDOException $e) {
-    // Log error securely
     error_log("Database connection error: " . $e->getMessage());
-    
-    // Generic error message for users
-    header($_SERVER['SERVER_PROTOCOL'] . ' 503 Service Temporarily Unavailable');
-    die('Database connection error. Please try again later.');
-}
-
-// Function to sanitize database inputs
-function sanitizeInput($input) {
-    if (is_array($input)) {
-        return array_map('sanitizeInput', $input);
-    }
-    return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
-}
-
-// Function to validate database connection
-function validateConnection($conn) {
-    try {
-        $conn->query('SELECT 1');
-        return true;
-    } catch (PDOException $e) {
-        error_log("Connection validation failed: " . $e->getMessage());
-        return false;
-    }
-}
-
-// Function to close database connection
-function closeConnection(&$conn) {
-    $conn = null;
+    die("Database connection error. Please try again later.");
 }
 
 // Register shutdown function
