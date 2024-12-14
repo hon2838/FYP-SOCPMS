@@ -1,4 +1,6 @@
 <?php
+require_once 'telegram/telegram_handlers.php';
+
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
@@ -147,30 +149,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Update paperwork
-    $sql = "UPDATE tbl_ppw SET 
-            ref_number = ?,
-            project_name = ?,
-            ppw_type = ?,
-            session = ?,
-            document_path = ?
-            WHERE ppw_id = ? AND id = ?";
-            
-    $stmt = $conn->prepare($sql);
-    if ($stmt->execute([
-        trim($_POST['ref_number']),
-        trim($_POST['project_name']),
-        trim($_POST['ppw_type']),
-        trim($_POST['session']),
-        $fileName,
-        $ppw_id,
-        $user['id']
-    ])) {
-        echo "<script>alert('Paperwork updated successfully.'); window.location.href='" . 
-             ($user['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php') . 
-             "';</script>";
-    } else {
-        echo "<script>alert('Error updating paperwork.');</script>";
+    try {
+        // Update paperwork with notification
+        $sql = "UPDATE tbl_ppw SET 
+                ref_number = ?,
+                project_name = ?,
+                ppw_type = ?,
+                session = ?,
+                document_path = ?
+                WHERE ppw_id = ? AND id = ?";
+                
+        $stmt = $conn->prepare($sql);
+        if ($stmt->execute([
+            $_POST['ref_number'],
+            $_POST['project_name'],
+            $_POST['ppw_type'],
+            $_POST['session'],
+            $fileName ?: $paperwork['document_path'],
+            $_GET['ppw_id'],
+            $user['id']
+        ])) {
+            // Notify about successful paperwork update
+            notifySystemError(
+                'Paperwork Updated',
+                "Paperwork ID: {$_GET['ppw_id']}\n" .
+                "Updated by: {$_SESSION['email']}\n" .
+                "Project: {$_POST['project_name']}\n" .
+                "Type: {$_POST['ppw_type']}\n" .
+                "Time: " . date('Y-m-d H:i:s'),
+                __FILE__,
+                __LINE__
+            );
+
+            // Handle file upload notification
+            if (isset($_FILES['document']) && $_FILES['document']['error'] == 0) {
+                notifySystemError(
+                    'Document Updated',
+                    "Paperwork ID: {$_GET['ppw_id']}\n" .
+                    "New file: $fileName\n" .
+                    "Old file: {$paperwork['document_path']}\n" .
+                    "Updated by: {$_SESSION['email']}",
+                    __FILE__,
+                    __LINE__
+                );
+            }
+
+            header("Location: " . ($_SESSION['user_type'] === 'admin' ? 'admin_dashboard.php' : 'user_dashboard.php'));
+            exit;
+        }
+
+    } catch (Exception $e) {
+        error_log("Paperwork update error: " . $e->getMessage());
+        
+        // Notify admin about error
+        notifySystemError(
+            'Database Error',
+            $e->getMessage(),
+            __FILE__,
+            __LINE__
+        );
+        
+        die("An error occurred while updating paperwork. Please try again later.");
     }
 }
 ?>

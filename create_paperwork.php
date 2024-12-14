@@ -76,6 +76,7 @@ try {
 
 include 'includes/header.php';
 include 'includes/email_functions.php';
+require_once 'telegram/telegram_handlers.php';
 
 /**
  * Validates file uploads for paperwork
@@ -187,47 +188,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Insert into tbl_ppw
-    $sql = "INSERT INTO tbl_ppw (id, name, session, project_name, ref_number, ppw_type, project_date, document_path) 
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE(), ?)";
+    try {
+        $sql = "INSERT INTO tbl_ppw (id, name, session, project_name, ref_number, ppw_type, project_date, document_path) 
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE(), ?)";
+                
+        $stmt = $conn->prepare($sql);
+        if ($stmt->execute([
+            $user['id'],
+            $user['name'],
+            $_POST['session'],
+            $_POST['project_name'],
+            $_POST['ref_number'],
+            $_POST['ppw_type'],
+            $fileName
+        ])) {
+            // Notify admin via Telegram
+            notifyPaperworkSubmission(
+                $conn->lastInsertId(), // ppw_id
+                $user['name'],         // user_name
+                $_POST['project_name'] // title
+            );
+
+            // Redirect with success message
+            $redirectPath = ($user['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php';
+            echo "<script>alert('Paperwork created successfully.');</script>";
+            echo "<script>window.location.href='" . $redirectPath . "';</script>";
+        } else {
+            // Log error and notify admin
+            $error = "Error creating paperwork: " . implode(", ", $stmt->errorInfo());
+            error_log($error);
+            notifySystemError("Database Error", $error, __FILE__, __LINE__);
             
-    $stmt = $conn->prepare($sql);
-    if ($stmt->execute([
-        $user['id'],
-        $user['name'],
-        trim($_POST['session']),
-        trim($_POST['project_name']),
-        trim($_POST['ref_number']),
-        trim($_POST['ppw_type']),
-        $fileName
-    ])) {
-        // Get HOD email
-        $hodQuery = "SELECT email FROM tbl_users WHERE user_type = 'hod' AND department = ?";
-        $hodStmt = $conn->prepare($hodQuery);
-        $hodStmt->execute([$user['department']]);
-        $hodEmail = $hodStmt->fetchColumn();
-
-        // Send confirmation email to user
-        sendSubmissionEmail($_SESSION['email'], $_SESSION['name'], [
-            'ref_number' => $_POST['ref_number'],
-            'project_name' => $_POST['project_name'],
-            'submission_time' => date('Y-m-d H:i:s')
-        ]);
-
-        // Send notification to HOD
-        if ($hodEmail) {
-            sendHODNotificationEmail($hodEmail, $_SESSION['name'], [
-                'ref_number' => $_POST['ref_number'],
-                'project_name' => $_POST['project_name'],
-                'submission_time' => date('Y-m-d H:i:s')
-            ]);
+            echo "<script>alert('Error creating paperwork.');</script>";
         }
-
-        // Redirect with success message
-        $redirectPath = ($user['user_type'] === 'admin') ? 'admin_dashboard.php' : 'user_dashboard.php';
-        echo "<script>alert('Paperwork created successfully.');</script>";
-        echo "<script>window.location.href='" . $redirectPath . "';</script>";
-    } else {
-        echo "<script>alert('Error creating paperwork.');</script>";
+    } catch (Exception $e) {
+        // Log exception and notify admin
+        error_log("Create paperwork error: " . $e->getMessage());
+        notifySystemError("System Error", $e->getMessage(), __FILE__, __LINE__);
+        
+        echo "<script>alert('An error occurred while creating paperwork.');</script>";
     }
 
 }

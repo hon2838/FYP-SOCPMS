@@ -1,4 +1,6 @@
 <?php
+require_once 'telegram/telegram_handlers.php';
+
 // Start session and enforce HTTPS
 session_start();
 
@@ -14,84 +16,107 @@ include 'includes/header.php';              // Then header
 $errorHandler = ErrorHandler::getInstance();
 $rbac = new RBAC($conn);
 
-// Strict session validation
+
+// Strict session validation with notification
 if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
+    notifySystemError(
+        'Unauthorized Access',
+        "Session validation failed in admin account management",
+        __FILE__,
+        __LINE__
+    );
     header('Location: index.php');
     exit;
 }
 
-// Validate admin access
+// Validate admin access with notification
 if ($_SESSION['user_type'] !== 'admin') {
+    notifySystemError(
+        'Access Violation',
+        "Non-admin user attempted to access admin account management: {$_SESSION['email']}",
+        __FILE__,
+        __LINE__
+    );
     header('Location: index.php');
     exit; 
 }
 
-// Check permission using RBAC
-try {
-    if (!$rbac->checkPermission('manage_users')) {
-        throw new Exception("Access denied to user management", ErrorCodes::PERMISSION_DENIED);
-    }
-} catch (Exception $e) {
-    $errorHandler->handleError($e, 'index.php');
-    exit;
-}
+// Include database connection with PDO security options
+include 'dbconnect.php';
+include 'includes/header.php';
 
 // Set security headers
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("X-Content-Type-Options: nosniff");
 
-// Rate limiting
-$rate_limit_minutes = 5;
-$max_attempts = 10;
-$current_time = time();
 
-// Check for rate limiting using sessions
-if (!isset($_SESSION['login_attempts'])) {
-    $_SESSION['login_attempts'] = 1;
-    $_SESSION['first_attempt'] = $current_time;
-} else if ($_SESSION['login_attempts'] >= $max_attempts) {
-    if ($current_time - $_SESSION['first_attempt'] < $rate_limit_minutes * 60) {
-        die("Too many requests. Please try again later.");
+    // Rate limiting
+    if (!isset($_SESSION['manage_attempts'])) {
+        $_SESSION['manage_attempts'] = 1;
+        $_SESSION['manage_time'] = time();
     } else {
-        $_SESSION['login_attempts'] = 1;
-        $_SESSION['first_attempt'] = $current_time;
-    }
-} else {
-    $_SESSION['login_attempts']++;
-}
-
-// Get user type with prepared statement and input validation
-$email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    die("Invalid email format");
-}
-
-try {
-    $userQuery = "SELECT user_type FROM tbl_users WHERE email = ? AND active = 1";
-    $userStmt = $conn->prepare($userQuery);
-    $userStmt->execute([$email]);
-    
-    if ($userStmt->rowCount() === 0) {
-        // Log potential security breach
-        error_log("Failed admin access attempt from email: " . $email);
-        header('Location: index.php');
-        exit;
-    }
-    
-    $userResult = $userStmt->fetch(PDO::FETCH_ASSOC);
-    
-    // Double check user type
-    if ($userResult['user_type'] !== 'admin') {
-        // Log unauthorized access attempt
-        error_log("Unauthorized admin access attempt from email: " . $email);
-        header('Location: index.php');
-        exit;
+        if (time() - $_SESSION['manage_time'] < 300) { // 5 minute window
+            if ($_SESSION['manage_attempts'] > 10) {
+                notifySystemError(
+                    'Rate Limit Exceeded',
+                    "Too many account management attempts by admin: {$_SESSION['email']}",
+                    __FILE__,
+                    __LINE__
+                );
+                die("Too many requests. Please try again later.");
+            }
+            $_SESSION['manage_attempts']++;
+        } else {
+            $_SESSION['manage_attempts'] = 1;
+            $_SESSION['manage_time'] = time();
+        }
     }
 
-} catch (PDOException $e) {
-    // Log error securely
-    error_log("Database error: " . $e->getMessage());
+    // Handle account actions
+    if (isset($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'delete':
+                $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
+                if ($user_id) {
+                    $stmt = $conn->prepare("DELETE FROM tbl_users WHERE id = ?");
+                    if ($stmt->execute([$user_id])) {
+                        notifySystemError(
+                            'User Deleted',
+                            "Admin {$_SESSION['email']} deleted user ID: $user_id",
+                            __FILE__,
+                            __LINE__
+                        );
+                    }
+                }
+                break;
+                
+            case 'update':
+                // Handle user updates with notification
+                $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
+                if ($user_id) {
+                    $stmt = $conn->prepare("UPDATE tbl_users SET status = ? WHERE id = ?");
+                    if ($stmt->execute([$_POST['status'], $user_id])) {
+                        notifySystemError(
+                            'User Updated',
+                            "Admin {$_SESSION['email']} updated user ID: $user_id, New status: {$_POST['status']}",
+                            __FILE__,
+                            __LINE__
+                        );
+                    }
+                }
+                break;
+        }
+    }
+
+} catch (Exception $e) {
+    error_log("Admin account management error: " . $e->getMessage());
+    notifySystemError(
+        'System Error',
+        $e->getMessage(),
+        __FILE__,
+        __LINE__
+    );
     die("An error occurred. Please try again later.");
 }
 
