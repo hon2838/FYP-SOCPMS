@@ -1,27 +1,13 @@
 <?php
-require_once 'telegram/telegram_handlers.php';
-
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 session_start();
 
-// Log and notify about the logout attempt
+// Log the logout attempt
 if (isset($_SESSION['email'])) {
-    $email = $_SESSION['email'];
-    $userType = $_SESSION['user_type'] ?? 'unknown';
-    error_log("User logout: " . $email);
-
-    // Notify admin about admin user logouts
-    if ($userType === 'admin') {
-        notifySystemError(
-            'Admin Logout',
-            "Admin user logged out\nEmail: $email\nTime: " . date('Y-m-d H:i:s'),
-            __FILE__,
-            __LINE__
-        );
-    }
+    error_log("User logout: " . $_SESSION['email']);
 }
 
 // Clear all session variables
@@ -33,11 +19,11 @@ if (isset($_COOKIE[session_name()])) {
     setcookie(
         session_name(),
         '',
-        time() - 3600,
+        time() - 42000,
         $params["path"],
         $params["domain"],
-        $params["secure"],
-        $params["httponly"]
+        true,
+        true
     );
 }
 

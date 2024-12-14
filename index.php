@@ -1,5 +1,4 @@
 <?php
-require_once 'telegram/telegram_handlers.php';
 include 'dbconnect.php';
 
 // Start session with strict settings
@@ -29,12 +28,6 @@ if (!isset($_SESSION['login_attempts'])) {
     if (time() - $_SESSION['first_attempt'] < 300) { // 5 minute window
         if ($_SESSION['login_attempts'] > 5) {
             error_log("Login rate limit exceeded for IP: " . $_SERVER['REMOTE_ADDR']);
-            // Notify admin about rate limit breach
-            notifyLoginFailure(
-                isset($_POST['email']) ? $_POST['email'] : 'unknown',
-                $_SERVER['REMOTE_ADDR'],
-                $_SESSION['login_attempts']
-            );
             die("Too many login attempts. Please try again later.");
         }
         $_SESSION['login_attempts']++;
@@ -81,20 +74,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Execute with timing attack protection
                 if ($stmt->execute()) {
                     if ($stmt->rowCount() === 0) {
-                        error_log("Login attempt with non-existent email: " . $email);
-                        // Notify admin about invalid email login attempt
-                        notifyLoginFailure($email, $_SERVER['REMOTE_ADDR'], $_SESSION['login_attempts']);
-                        sleep(1);
-                        $email_err = "Invalid email or password";
+                        error_log("Login attempt with non-existent email: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
+                        sleep(1); // Prevent brute force
+                        $email_err = "Invalid email or password"; // Generic error for security
                     } else {
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                        if (!password_verify($password, $row['password'])) {
-                            // Notify admin about wrong password
-                            notifyLoginFailure($email, $_SERVER['REMOTE_ADDR'], $_SESSION['login_attempts']);
-                            error_log("Failed password attempt for email: " . $email);
-                            sleep(1);
-                            $password_err = "Invalid email or password";
-                        } else {
+                        if (password_verify($password, $row['password'])) {
                             if ($row['active'] == 1) {
                                 // Success - log the successful login
                                 error_log("Successful login: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
@@ -123,17 +108,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 error_log("Login attempt on inactive account: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
                                 $login_err = "Account is inactive";
                             }
+                        } else {
+                            error_log("Failed password attempt for email: " . $email . " from IP: " . $_SERVER['REMOTE_ADDR']);
+                            sleep(1);
+                            $password_err = "Invalid email or password"; // Generic error for security
                         }
                     }
                 }
             } catch (PDOException $e) {
-                error_log("Database error in login: " . $e->getMessage());
-                notifySystemError(
-                    "Database Error",
-                    $e->getMessage(),
-                    __FILE__,
-                    __LINE__
-                );
+                error_log("Login error: " . $e->getMessage());
                 die("An error occurred. Please try again later.");
             }
 

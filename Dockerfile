@@ -28,8 +28,3 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Apache configuration
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-# After existing RUN commands
-RUN apt-get update && apt-get install -y \
-    php-curl \
-    && rm -rf /var/lib/apt/lists/*

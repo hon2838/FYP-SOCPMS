@@ -1,9 +1,4 @@
 <?php
-require_once 'telegram/telegram_handlers.php';
-include 'dbconnect.php';
-include 'includes/header.php';
-include 'includes/email_functions.php';
-
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
@@ -14,17 +9,7 @@ session_start();
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'admin')) {
-    $email = $_SESSION['email'] ?? 'unknown';
-    error_log("Unauthorized paperwork view attempt: " . $email);
-    
-    // Notify admin about unauthorized access
-    notifySystemError(
-        'Unauthorized Access',
-        "Unauthorized attempt to view admin paperwork by: $email",
-        __FILE__,
-        __LINE__
-    );
-    
+    error_log("Unauthorized paperwork view attempt: " . ($_SESSION['email'] ?? 'unknown'));
     session_destroy();
     header('Location: index.php');
     exit;
@@ -54,6 +39,9 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
+include 'dbconnect.php';
+include 'includes/header.php';
+include 'includes/email_functions.php';
 
 // Rate limiting for paperwork actions
 if (!isset($_SESSION['paperwork_actions'])) {
@@ -179,35 +167,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     }
 }
 
-try {
-    // Get paperwork details with error handling
-    $ppw_id = filter_input(INPUT_GET, 'ppw_id', FILTER_VALIDATE_INT);
-    if (!$ppw_id) {
-        throw new Exception("Invalid paperwork ID");
-    }
-
-    $stmt = $conn->prepare("SELECT * FROM tbl_ppw WHERE ppw_id = ?");
-    if (!$stmt->execute([$ppw_id])) {
-        throw new Exception("Error fetching paperwork details");
-    }
-
+if (isset($_GET['ppw_id'])) {
+    $ppw_id = $_GET['ppw_id'];
+    $sql = "SELECT p.*, u.name as submitted_by 
+            FROM tbl_ppw p 
+            JOIN tbl_users u ON p.id = u.id 
+            WHERE p.ppw_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$ppw_id]);
     $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
+    
     if (!$paperwork) {
-        throw new Exception("Paperwork not found");
+        echo "<script>alert('Paperwork not found.'); window.location.href='admin_dashboard.php';</script>";
+        exit;
     }
-
-} catch (Exception $e) {
-    error_log("Paperwork view error: " . $e->getMessage());
-    
-    // Notify admin about system error
-    notifySystemError(
-        'Database Error',
-        $e->getMessage(),
-        __FILE__,
-        __LINE__
-    );
-    
-    die("An error occurred while viewing paperwork. Please try again later.");
+} else {
+    echo "<script>alert('No Paperwork ID provided.'); window.location.href='admin_dashboard.php';</script>";
+    exit;
 }
 
 try {

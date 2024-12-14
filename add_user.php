@@ -1,28 +1,6 @@
 <?php
-require_once 'telegram/telegram_handlers.php';
-
-// Start session with strict settings
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_samesite', 'Strict');
 session_start();
-
-// Strict session validation
-if (!isset($_SESSION['email']) || 
-    !isset($_SESSION['user_type']) || 
-    !hash_equals($_SESSION['user_type'], 'admin')) {
-    
-    $email = $_SESSION['email'] ?? 'unknown';
-    error_log("Unauthorized user addition attempt: " . $email);
-    
-    // Notify admin about unauthorized access
-    notifySystemError(
-        'Unauthorized Access',
-        "Unauthorized attempt to add user by: $email",
-        __FILE__,
-        __LINE__
-    );
-    
+if (!(isset($_SESSION['email']) && $_SESSION['user_type'] == 'admin')) {
     header('Location: index.php');
     exit;
 }
@@ -39,17 +17,11 @@ include 'dbconnect.php';
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
-        // Validate inputs
-        $name = trim($_POST['name']);
-        $email = trim($_POST['email']);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $user_type = $_POST['user_type'];
-
-        // Validate email format
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid email format");
-        }
+    // Validate inputs
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash the password
+    $user_type = $_POST['user_type'];
 
     // Validate role_id
     $role_id = filter_var($_POST['role_id'], FILTER_VALIDATE_INT);
@@ -58,14 +30,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Prepare SQL statement
-    $sql = "INSERT INTO tbl_users (name, email, password, user_type) VALUES (:name, :email, :password, :user_type)";
+    $sql = "INSERT INTO tbl_users (name, email, password, role_id) VALUES (:name, :email, :password, :role_id)";
     $stmt = $conn->prepare($sql);
     
     // Bind parameters
     $stmt->bindParam(':name', $name, PDO::PARAM_STR);
     $stmt->bindParam(':email', $email, PDO::PARAM_STR);
     $stmt->bindParam(':password', $password, PDO::PARAM_STR);
-    $stmt->bindParam(':user_type', $user_type, PDO::PARAM_STR);
+    $stmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
 
     // Execute and redirect
     if ($stmt->execute()) {

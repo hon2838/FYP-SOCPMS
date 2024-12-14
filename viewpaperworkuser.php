@@ -1,7 +1,4 @@
 <?php
-require_once 'telegram/telegram_handlers.php';
-include 'dbconnect.php';
-
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
@@ -12,17 +9,7 @@ session_start();
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'user')) {
-    $email = $_SESSION['email'] ?? 'unknown';
-    error_log("Unauthorized paperwork view attempt: " . $email);
-    
-    // Notify admin using [`notifySystemError`](telegram/telegram_handlers.php)
-    notifySystemError(
-        'Unauthorized Access',
-        "Unauthorized attempt to view user paperwork by: $email",
-        __FILE__,
-        __LINE__
-    );
-    
+    error_log("Unauthorized paperwork view attempt: " . ($_SESSION['email'] ?? 'unknown'));
     session_destroy();
     header('Location: index.php');
     exit;
@@ -52,6 +39,10 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
+// Include database connection
+include 'dbconnect.php';
+include 'includes/header.php';
+
 // Rate limiting for paperwork views
 if (!isset($_SESSION['view_attempts'])) {
     $_SESSION['view_attempts'] = 1;
@@ -71,42 +62,37 @@ if (!isset($_SESSION['view_attempts'])) {
 }
 
 try {
-    // Get paperwork details with error handling
-    $ppw_id = filter_input(INPUT_GET, 'ppw_id', FILTER_VALIDATE_INT);
-    if (!$ppw_id) {
-        throw new Exception("Invalid paperwork ID");
+    // Sanitize email
+    $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception("Invalid email format");
     }
 
-    // Verify user owns this paperwork
-    $stmt = $conn->prepare("SELECT * FROM tbl_ppw WHERE ppw_id = ? AND user_email = ?");
-    if (!$stmt->execute([$ppw_id, $_SESSION['email']])) {
-        throw new Exception("Error fetching paperwork details");
+    // Validate and sanitize ppw_id
+    if (!isset($_GET['ppw_id']) || !filter_var($_GET['ppw_id'], FILTER_VALIDATE_INT)) {
+        throw new Exception("Invalid paperwork ID");
+    }
+    $ppw_id = filter_var($_GET['ppw_id'], FILTER_VALIDATE_INT);
+
+    // Verify user has permission to view this paperwork
+    $sql = "SELECT * FROM tbl_ppw WHERE ppw_id = ? AND user_email = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$ppw_id, $email]);
+
+    if ($stmt->rowCount() === 0) {
+        error_log("Unauthorized paperwork access attempt - User: $email, Paperwork ID: $ppw_id");
+        throw new Exception("Access denied");
     }
 
     $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
+    
     if (!$paperwork) {
-        // Notify admin of potential unauthorized access attempt
-        notifySystemError(
-            'Access Violation',
-            "User {$_SESSION['email']} attempted to view unauthorized paperwork ID: $ppw_id",
-            __FILE__,
-            __LINE__
-        );
-        throw new Exception("Paperwork not found or access denied");
+        echo "<script>alert('Paperwork not found.'); window.location.href='user_dashboard.php';</script>";
+        exit;
     }
-
 } catch (Exception $e) {
-    error_log("Paperwork view error: " . $e->getMessage());
-    
-    // Notify admin about system error using [`notifySystemError`](telegram/telegram_handlers.php)
-    notifySystemError(
-        'Database Error',
-        $e->getMessage(),
-        __FILE__,
-        __LINE__
-    );
-    
-    die("An error occurred while viewing paperwork. Please try again later.");
+    echo "<script>alert('{$e->getMessage()}'); window.location.href='user_dashboard.php';</script>";
+    exit;
 }
 
 ?>

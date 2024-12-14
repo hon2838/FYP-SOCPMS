@@ -46,14 +46,6 @@ try {
     // Make RBAC available globally if needed
     global $rbac;
 
-    // Add after database connection
-    require_once 'telegram_bot.php';
-
-    $telegram = new TelegramBot(
-        getenv('TELEGRAM_BOT_TOKEN') ?: 'your_bot_token_here',
-        getenv('TELEGRAM_CHAT_ID') ?: 'your_chat_id_here'
-    );
-
 } catch(PDOException $e) {
     error_log("Database connection error: " . $e->getMessage());
     die("Database connection error. Please try again later.");
