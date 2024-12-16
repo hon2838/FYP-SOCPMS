@@ -1,21 +1,8 @@
 <?php
 session_start();
+header('Content-Type: application/json');
 
 try {
-    if (!$rbac->checkPermission('manage_settings')) {
-        throw new Exception("Permission denied", ErrorCodes::PERMISSION_DENIED);
-    }
-    
-    if (!filter_var($_POST['email_notifications'], FILTER_VALIDATE_BOOLEAN)) {
-        throw new Exception("Invalid notification setting", ErrorCodes::INPUT_INVALID_FORMAT);
-    }
-    
-    if (!in_array($_POST['theme'], ['light', 'dark', 'system'])) {
-        throw new Exception("Invalid theme selection", ErrorCodes::INPUT_INVALID_FORMAT);
-    }
-    
-    header('Content-Type: application/json');
-
     // Validate and sanitize input
     $settings = [
         'email_notifications' => isset($_POST['email_notifications']),
@@ -42,6 +29,9 @@ try {
     ]);
     
 } catch (Exception $e) {
-    echo ErrorHandler::getInstance()->handleError($e);
-    exit;
+    error_log("Settings update error: " . $e->getMessage());
+    echo json_encode([
+        'success' => false, 
+        'error' => 'Error updating settings'
+    ]);
 }

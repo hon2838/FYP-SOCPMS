@@ -1,11 +1,10 @@
 <?php
-// Include functions first
-require_once 'includes/functions.php';
+// dbconnect.php
 
 // Define database credentials as constants
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'soc_pms');
-define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_USER', getenv('DB_USER') ?: 'r1');
 define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
@@ -29,7 +28,7 @@ try {
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . DB_CHARSET,
         PDO::ATTR_PERSISTENT => false,
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
-        PDO::ATTR_TIMEOUT => 5
+        PDO::ATTR_TIMEOUT => 5, // Connection timeout in seconds
     ];
 
     // Create PDO instance
@@ -39,16 +38,50 @@ try {
     $conn->exec("SET SESSION sql_mode = 'STRICT_ALL_TABLES'");
     $conn->exec("SET SESSION time_zone = '+00:00'");
     
-    // After PDO connection
-    require_once 'includes/RBAC.php';
-    $rbac = new RBAC($conn);
+    // Verify connection is alive
+    if (!$conn->query('SELECT 1')) {
+        throw new PDOException('Database connection test failed');
+    }
 
-    // Make RBAC available globally if needed
-    global $rbac;
+    // Add after database connection
+    require_once 'telegram_bot.php';
+
+    $telegram = new TelegramBot(
+        getenv('TELEGRAM_BOT_TOKEN') ?: 'your_bot_token_here',
+        getenv('TELEGRAM_CHAT_ID') ?: 'your_chat_id_here'
+    );
 
 } catch(PDOException $e) {
+    // Log error securely
     error_log("Database connection error: " . $e->getMessage());
-    die("Database connection error. Please try again later.");
+    
+    // Generic error message for users
+    header($_SERVER['SERVER_PROTOCOL'] . ' 503 Service Temporarily Unavailable');
+    die('Database connection error. Please try again later.');
+}
+
+// Function to sanitize database inputs
+function sanitizeInput($input) {
+    if (is_array($input)) {
+        return array_map('sanitizeInput', $input);
+    }
+    return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+}
+
+// Function to validate database connection
+function validateConnection($conn) {
+    try {
+        $conn->query('SELECT 1');
+        return true;
+    } catch (PDOException $e) {
+        error_log("Connection validation failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to close database connection
+function closeConnection(&$conn) {
+    $conn = null;
 }
 
 // Register shutdown function

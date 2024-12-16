@@ -1,4 +1,9 @@
 <?php
+require_once 'telegram/telegram_handlers.php';
+include 'dbconnect.php';
+include 'includes/header.php';
+include 'includes/email_functions.php';
+
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
@@ -9,7 +14,17 @@ session_start();
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'admin')) {
-    error_log("Unauthorized paperwork view attempt: " . ($_SESSION['email'] ?? 'unknown'));
+    $email = $_SESSION['email'] ?? 'unknown';
+    error_log("Unauthorized paperwork view attempt: " . $email);
+    
+    // Notify admin about unauthorized access
+    notifySystemError(
+        'Unauthorized Access',
+        "Unauthorized attempt to view admin paperwork by: $email",
+        __FILE__,
+        __LINE__
+    );
+    
     session_destroy();
     header('Location: index.php');
     exit;
@@ -39,9 +54,6 @@ if (!isset($_SESSION['created'])) {
     $_SESSION['created'] = time();
 }
 
-include 'dbconnect.php';
-include 'includes/header.php';
-include 'includes/email_functions.php';
 
 // Rate limiting for paperwork actions
 if (!isset($_SESSION['paperwork_actions'])) {
@@ -58,24 +70,6 @@ if (!isset($_SESSION['paperwork_actions'])) {
     } else {
         $_SESSION['paperwork_actions'] = 1;
         $_SESSION['action_time'] = time();
-    }
-}
-
-// Add permission checks based on action
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
-    $requiredPermission = match($_SESSION['user_type']) {
-        'hod' => 'approve_hod_paperwork',
-        'ceo' => 'approve_ceo_paperwork',
-        default => 'view_paperwork'
-    };
-    
-    if (!$rbac->checkPermission($requiredPermission)) {
-        http_response_code(403);
-        echo json_encode([
-            'error' => true,
-            'message' => 'You do not have permission to perform this action'
-        ]);
-        exit;
     }
 }
 
@@ -167,39 +161,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
     }
 }
 
-if (isset($_GET['ppw_id'])) {
-    $ppw_id = $_GET['ppw_id'];
-    $sql = "SELECT p.*, u.name as submitted_by 
-            FROM tbl_ppw p 
-            JOIN tbl_users u ON p.id = u.id 
-            WHERE p.ppw_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$ppw_id]);
-    $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$paperwork) {
-        echo "<script>alert('Paperwork not found.'); window.location.href='admin_dashboard.php';</script>";
-        exit;
-    }
-} else {
-    echo "<script>alert('No Paperwork ID provided.'); window.location.href='admin_dashboard.php';</script>";
-    exit;
-}
-
 try {
-    if (!isset($_POST['ppw_id']) || !filter_var($_POST['ppw_id'], FILTER_VALIDATE_INT)) {
-        throw new Exception("Invalid paperwork ID", ErrorCodes::INPUT_INVALID_FORMAT);
+    // Get paperwork details with error handling
+    $ppw_id = filter_input(INPUT_GET, 'ppw_id', FILTER_VALIDATE_INT);
+    if (!$ppw_id) {
+        throw new Exception("Invalid paperwork ID");
     }
-    
-    // Verify paperwork exists
-    $checkStmt = $conn->prepare("SELECT ppw_id FROM tbl_ppw WHERE ppw_id = ?");
-    if (!$checkStmt->execute([$ppw_id])) {
-        throw new Exception("Paperwork not found", ErrorCodes::PAPERWORK_NOT_FOUND);
+
+    $stmt = $conn->prepare("SELECT * FROM tbl_ppw WHERE ppw_id = ?");
+    if (!$stmt->execute([$ppw_id])) {
+        throw new Exception("Error fetching paperwork details");
     }
-    
+
+    $paperwork = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$paperwork) {
+        throw new Exception("Paperwork not found");
+    }
+
 } catch (Exception $e) {
-    echo ErrorHandler::getInstance()->handleError($e);
-    exit;
+    error_log("Paperwork view error: " . $e->getMessage());
+    
+    // Notify admin about system error
+    notifySystemError(
+        'Database Error',
+        $e->getMessage(),
+        __FILE__,
+        __LINE__
+    );
+    
+    die("An error occurred while viewing paperwork. Please try again later.");
 }
 ?>
 <!DOCTYPE html>

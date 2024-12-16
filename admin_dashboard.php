@@ -1,41 +1,27 @@
 <?php
-// Start session with strict settings
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_samesite', 'Strict');
+require_once 'telegram/telegram_handlers.php';
+
+// Session validation and security checks
 session_start();
 
-// Include required files in correct order
-require_once 'includes/functions.php';      // Add functions first
-require_once 'includes/ErrorCodes.php';     // Then error codes
-require_once 'includes/ErrorHandler.php';    // Then error handler
-require_once 'dbconnect.php';               // Then database connection
-require_once 'includes/RBAC.php'; 
-
-// Initialize error handler and RBAC
-$errorHandler = ErrorHandler::getInstance();
-$rbac = new RBAC($conn);
-
-// Enable error logging
-error_log("Admin Dashboard Session: " . print_r($_SESSION, true));
-
-// Strict session validation with timing attack prevention
+// Validate admin access with notification
 if (!isset($_SESSION['email']) || 
     !isset($_SESSION['user_type']) || 
     !hash_equals($_SESSION['user_type'], 'admin')) {
-    error_log("Admin access denied: " . print_r($_SESSION, true));
+    
+    $email = $_SESSION['email'] ?? 'unknown';
+    error_log("Unauthorized dashboard access attempt: " . $email);
+    
+    // Notify about unauthorized access using [`notifySystemError`](telegram/telegram_handlers.php)
+    notifySystemError(
+        'Unauthorized Access',
+        "Unauthorized attempt to access admin dashboard by: $email",
+        __FILE__,
+        __LINE__
+    );
+    
     session_destroy();
     header('Location: index.php');
-    exit;
-}
-
-// Now check permission using try-catch with proper error handling
-try {
-    if (!$rbac->checkPermission('view_admin_dashboard')) {
-        throw new Exception("Access denied to admin dashboard", ErrorCodes::PERMISSION_DENIED);
-    }
-} catch (Exception $e) {
-    $errorHandler->handleError($e, 'index.php');
     exit;
 }
 
@@ -46,9 +32,18 @@ header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
 
-// Session timeout check (30 minutes)
+// Session timeout check with notification
 if (isset($_SESSION['last_activity']) && 
     (time() - $_SESSION['last_activity'] > 1800)) {
+    
+    // Notify about session timeout
+    notifySystemError(
+        'Session Timeout',
+        "Admin session timed out for user: {$_SESSION['email']}",
+        __FILE__,
+        __LINE__
+    );
+    
     session_unset();
     session_destroy();
     header('Location: index.php');
@@ -56,48 +51,40 @@ if (isset($_SESSION['last_activity']) &&
 }
 $_SESSION['last_activity'] = time();
 
-// Session fixation prevention
-if (!isset($_SESSION['created'])) {
-    $_SESSION['created'] = time();
-} else if (time() - $_SESSION['created'] > 1800) {
-    session_regenerate_id(true);
-    $_SESSION['created'] = time();
-}
-
-// Rate limiting for admin actions
-if (!isset($_SESSION['request_count'])) {
-    $_SESSION['request_count'] = 1;
-    $_SESSION['request_time'] = time();
-} else {
-    if (time() - $_SESSION['request_time'] < 60) { // 1 minute window
-        if ($_SESSION['request_count'] > 30) { // Max 30 requests per minute
-            error_log("Rate limit exceeded for admin: " . $_SESSION['email']);
-            http_response_code(429);
-            die("Too many requests. Please try again later.");
-        }
-        $_SESSION['request_count']++;
-    } else {
-        $_SESSION['request_count'] = 1;
-        $_SESSION['request_time'] = time();
-    }
-}
-
-// Include database connection with additional security checks
 try {
+    // Database operations
     include 'dbconnect.php';
     
-    // Verify admin status in database
-    $stmt = $conn->prepare("SELECT active FROM tbl_users WHERE email = ? AND user_type = 'admin' AND active = 1");
-    $stmt->execute([$_SESSION['email']]);
-    
-    if ($stmt->rowCount() === 0) {
-        error_log("Invalid admin access attempt: " . $_SESSION['email']);
-        session_destroy();
-        header('Location: index.php');
-        exit;
+    // Rate limiting for dashboard actions
+    if (!isset($_SESSION['dashboard_actions'])) {
+        $_SESSION['dashboard_actions'] = 1;
+        $_SESSION['action_time'] = time();
+    } else {
+        if (time() - $_SESSION['action_time'] < 300) { // 5 minute window
+            if ($_SESSION['dashboard_actions'] > 20) { // Max 20 actions per 5 minutes
+                notifySystemError(
+                    'Rate Limit Exceeded',
+                    "Admin dashboard action limit exceeded by: {$_SESSION['email']}",
+                    __FILE__,
+                    __LINE__
+                );
+                die("Too many actions. Please try again later.");
+            }
+            $_SESSION['dashboard_actions']++;
+        } else {
+            $_SESSION['dashboard_actions'] = 1;
+            $_SESSION['action_time'] = time();
+        }
     }
-} catch (PDOException $e) {
-    error_log("Database error in admin dashboard: " . $e->getMessage());
+    
+} catch (Exception $e) {
+    error_log("Admin dashboard error: " . $e->getMessage());
+    notifySystemError(
+        'System Error',
+        $e->getMessage(),
+        __FILE__,
+        __LINE__
+    );
     die("An error occurred. Please try again later.");
 }
 

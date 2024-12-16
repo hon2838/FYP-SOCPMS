@@ -1,4 +1,6 @@
 <?php
+require_once 'telegram/telegram_handlers.php';
+
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
@@ -12,14 +14,21 @@ header("X-Content-Type-Options: nosniff");
 
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
-// Rate limiting for registration attempts
+// Rate limiting with notifications
 if (!isset($_SESSION['register_attempts'])) {
     $_SESSION['register_attempts'] = 1;
     $_SESSION['register_time'] = time();
 } else {
     if (time() - $_SESSION['register_time'] < 300) { // 5 minute window
-        if ($_SESSION['register_attempts'] > 3) { // Max 3 registration attempts per 5 minutes
+        if ($_SESSION['register_attempts'] > 3) {
+            // Log and notify about rate limit breach
             error_log("Registration rate limit exceeded from IP: " . $_SERVER['REMOTE_ADDR']);
+            notifySystemError(
+                'Rate Limit Exceeded',
+                "Multiple registration attempts from IP: {$_SERVER['REMOTE_ADDR']}",
+                __FILE__,
+                __LINE__
+            );
             die("Too many registration attempts. Please try again later.");
         }
         $_SESSION['register_attempts']++;
@@ -63,91 +72,61 @@ function validatePassword($password) {
     return "";
 }
 
-// Processing form data when form is submitted
+// Process registration form
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    // Validate name
-    if (empty(trim($_POST["name"]))) {
-        $name_err = "Please enter a name.";
-    } else {
-        // Prepare a select statement
-        $sql = "SELECT id FROM tbl_users WHERE name = :name";
-
-        if ($stmt = $conn->prepare($sql)) {
-            // Bind parameters to the prepared statement
-            $stmt->bindParam(":name", $param_name, PDO::PARAM_STR);
-
-            // Set parameters
-            $param_name = trim($_POST["name"]);
-
-            // Attempt to execute the prepared statement
-            if ($stmt->execute()) {
-                // Check if name already exists
-                if ($stmt->rowCount() == 1) {
-                    $name_err = "This name is already taken.";
-                } else {
-                    $name = trim($_POST["name"]);
-                }
-            } else {
-                echo "Oops! Something went wrong. Please try again later.";
-            }
-
-            // Close statement
-            unset($stmt);
+    try {
+        // Validate inputs
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+        
+        // Email format validation
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Invalid email format");
         }
-    }
-
-    // Validate password
-    if (empty(trim($_POST['password']))) {
-        $password_err = "Please enter a password.";
-        echo $password_err;
-    } else {
-        $password_err = validatePassword(trim($_POST['password']));
-        if (empty($password_err)) {
-            $password = trim($_POST['password']);
-        } else {
-            echo $password_err;
+        
+        // Check if email exists
+        $stmt = $conn->prepare("SELECT id FROM tbl_users WHERE email = ?");
+        $stmt->execute([$email]);
+        if ($stmt->rowCount() > 0) {
+            // Notify about duplicate registration attempt
+            notifySystemError(
+                'Registration Attempt',
+                "Duplicate registration attempt for email: $email\nIP: {$_SERVER['REMOTE_ADDR']}",
+                __FILE__,
+                __LINE__
+            );
+            throw new Exception("Email already exists");
         }
-    }
-
-    // Validate confirm password
-    if (empty(trim($_POST["confirmPassword"]))) {
-        $confirmPassword_err = "Please confirm password.";
-    } else {
-        $confirmPassword = trim($_POST['confirmPassword']);
-        if (empty($password_err) && ($password != $confirmPassword)) {
-            $confirmPassword_err = "Password did not match.";
+        
+        // Insert new user
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("INSERT INTO tbl_users (name, email, password, user_type) VALUES (?, ?, ?, 'user')");
+        
+        if ($stmt->execute([$name, $email, $hashedPassword])) {
+            // Notify admin about successful registration
+            notifySystemError(
+                'New User Registration',
+                "New user registered:\nName: $name\nEmail: $email\nIP: {$_SERVER['REMOTE_ADDR']}\nTime: " . date('Y-m-d H:i:s'),
+                __FILE__,
+                __LINE__
+            );
+            
+            header("Location: index.php");
+            exit();
         }
+        
+    } catch (Exception $e) {
+        error_log("Registration error: " . $e->getMessage());
+        // Notify admin about registration error
+        notifySystemError(
+            'Registration Error',
+            $e->getMessage(),
+            __FILE__,
+            __LINE__
+        );
+        die("An error occurred during registration. Please try again later.");
     }
-
-    // Check input errors before inserting into database
-    $sql = "INSERT INTO tbl_users (name,email,password) VALUES (:name,:email, :password)";
-    if ($stmt = $conn->prepare($sql)) {
-        // Bind parameters to the prepared statement
-        $stmt->bindParam(":name", $param_name, PDO::PARAM_STR);
-        $stmt->bindParam(":email", $param_email, PDO::PARAM_STR);
-        $stmt->bindParam(":password", $param_password, PDO::PARAM_STR);
-
-        // Set parameters
-        $param_name = $name;
-        $param_password = password_hash($password, PASSWORD_DEFAULT); // Creates a password hash
-        $param_email = trim($_POST['email']); // Ensure you have this line to set $email
-
-        // Attempt to execute the prepared statement
-        if ($stmt->execute()) {
-            // Redirect to login page
-            header("location: index.php");
-            exit;
-        } else {
-            echo "Something went wrong. Please try again later.";
-        }
-
-        // Close statement
-        unset($stmt);
-    }
-
-    // Close connection
-    unset($conn);
 }
 ?>
 
