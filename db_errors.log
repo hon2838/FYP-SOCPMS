@@ -669,19 +669,4 @@ Stack trace:
 [14-Dec-2024 18:37:13 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 264
 [14-Dec-2024 18:37:13 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
 [14-Dec-2024 18:37:13 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 264
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:30 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 40
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 41
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Warning:  Cannot modify header information - headers already sent by (output started at C:\xampp\htdocs\FYP-SOCPMS\includes\header.php:82) in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 42
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 264
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Warning:  Undefined array key "role_name" in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
-[14-Dec-2024 18:46:34 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\xampp\htdocs\FYP-SOCPMS\admin_manage_account.php on line 265
+[16-Dec-2024 09:55:14 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: NO)
