@@ -135,3 +135,5 @@ Stack trace:
 [16-Dec-2024 16:35:29 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'r1'@'localhost' (using password: NO)
 [16-Dec-2024 16:38:06 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
 [16-Dec-2024 16:38:06 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[16-Dec-2024 15:42:20 UTC] Successful login: joanchoo2201@hotmail.com from IP: 172.20.0.1
+[16-Dec-2024 15:42:20 UTC] Successful login: joanchoo2201@hotmail.com

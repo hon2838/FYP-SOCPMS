@@ -403,48 +403,41 @@ if (!isset($_SESSION['created'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-    // JavaScript to populate the modal with user data
-    document.querySelectorAll('.editUserBtn').forEach(item => {
-        item.addEventListener('click', event => {
-            const userId = item.getAttribute('data-id');
-            const userName = item.getAttribute('data-name');
-            const userEmail = item.getAttribute('data-email');
-            const user_type = item.getAttribute('data-user_type');
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const addUserType = document.getElementById('addUserType');
+        if (addUserType) {
+            addUserType.addEventListener('change', function() {
+                const departmentField = document.getElementById('department');
+                const departmentGroup = departmentField?.closest('.mb-3');
+                
+                if (departmentGroup) {
+                    if (this.value === 'user' || this.value === 'hod') {
+                        departmentGroup.style.display = 'block';
+                        departmentField.required = true;
+                    } else {
+                        departmentGroup.style.display = 'none';
+                        departmentField.required = false;
+                        departmentField.value = '';
+                    }
+                }
+            });
+        }
 
-            document.getElementById('editUserId').value = userId;
-            document.getElementById('editUserName').value = userName;
-            document.getElementById('editUserEmail').value = userEmail;
-            document.getElementById('edituser_type').value = user_type;
+        // Initialize edit user buttons
+        document.querySelectorAll('.editUserBtn').forEach(item => {
+            item.addEventListener('click', event => {
+                const userId = item.getAttribute('data-id');
+                const userName = item.getAttribute('data-name');
+                const userEmail = item.getAttribute('data-email');
+                const userType = item.getAttribute('data-user_type');
+                
+                document.getElementById('editUserId').value = userId;
+                document.getElementById('editUserName').value = userName;
+                document.getElementById('editUserEmail').value = userEmail;
+                document.getElementById('edituser_type').value = userType;
+            });
         });
-    });
-
-    document.getElementById('addUserType').addEventListener('change', function() {
-        const departmentField = document.getElementById('department');
-        const departmentGroup = departmentField.closest('.mb-3');
-        
-        if (this.value === 'user' || this.value === 'hod') {
-            departmentGroup.style.display = 'block';
-            departmentField.required = true;
-        } else {
-            departmentGroup.style.display = 'none';
-            departmentField.required = false;
-            departmentField.value = '';
-        }
-    });
-
-    // For edit modal
-    document.getElementById('editUserType').addEventListener('change', function() {
-        const departmentField = document.getElementById('editDepartment');
-        const departmentGroup = departmentField.closest('.mb-3');
-        
-        if (this.value === 'user' || this.value === 'hod') {
-            departmentGroup.style.display = 'block';
-            departmentField.required = true;
-        } else {
-            departmentGroup.style.display = 'none';
-            departmentField.required = false;
-            departmentField.value = '';
-        }
     });
     </script>
 </body>
