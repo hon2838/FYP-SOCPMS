@@ -132,3 +132,6 @@ Stack trace:
   thrown in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 47
 [16-Dec-2024 14:15:34 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
 [16-Dec-2024 14:15:34 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
+[16-Dec-2024 16:35:29 Europe/Berlin] Database connection error: SQLSTATE[HY000] [1045] Access denied for user 'r1'@'localhost' (using password: NO)
+[16-Dec-2024 16:38:06 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[16-Dec-2024 16:38:06 Europe/Berlin] Successful login: joanchoo2201@hotmail.com
