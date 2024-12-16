@@ -163,10 +163,18 @@ $stmt->execute();
 $number_of_results = $stmt->rowCount();
 $number_of_pages = ceil($number_of_results / $results_per_page);
 $sqlloadpatients = $sqlloadpatients . " LIMIT " . $page_first_result . ',' . $results_per_page;
-$stmt ="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
+$stmt = $conn->prepare($sqlloadpatients);
+$stmt->execute();
+
+$results = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+$rows = $stmt->fetchAll();
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <body class="bg-light">
     <!-- Main Content with top margin to account for fixed navbar -->
