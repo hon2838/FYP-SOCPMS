@@ -124,3 +124,11 @@ Stack trace:
 #0 C:\xampp\htdocs\FYP-SOCPMS\index.php(3): include()
 #1 {main}
   thrown in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 47
+[16-Dec-2024 14:05:01 Europe/Berlin] PHP Warning:  require_once(telegram_bot.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 47
+[16-Dec-2024 14:05:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'telegram_bot.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php:47
+Stack trace:
+#0 C:\xampp\htdocs\FYP-SOCPMS\index.php(3): include()
+#1 {main}
+  thrown in C:\xampp\htdocs\FYP-SOCPMS\dbconnect.php on line 47
+[16-Dec-2024 14:15:34 Europe/Berlin] Successful login: joanchoo2201@hotmail.com from IP: ::1
+[16-Dec-2024 14:15:34 Europe/Berlin] Successful login: joanchoo2201@hotmail.com

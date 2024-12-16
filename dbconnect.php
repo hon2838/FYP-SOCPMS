@@ -44,7 +44,7 @@ try {
     }
 
     // Add after database connection
-    require_once 'telegram_bot.php';
+    require_once 'telegram/telegram_bot.php';
 
     $telegram = new TelegramBot(
         getenv('TELEGRAM_BOT_TOKEN') ?: 'your_bot_token_here',
