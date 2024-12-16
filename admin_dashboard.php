@@ -298,12 +298,18 @@ $stmt ="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.
         </div>
     </main>
 
-    <div class="d-flex justify-content-center">
-        <?php
-        for ($page = 1; $page <= $number_of_pages; $page++) {
-            echo '<a href="main.php?pageno=' . $page . '" class="btn btn-primary">' . $page . '</a>';
-        }
-        ?>
+    <div class="container pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <?php for ($page = 1; $page <= $number_of_pages; $page++): ?>
+                    <li class="page-item <?php echo $page == ($pageno ?? 1) ? 'active' : ''; ?>">
+                        <a class="page-link" href="admin_dashboard.php?pageno=<?php echo $page; ?>">
+                            <?php echo $page; ?>
+                        </a>
+                    </li>
+                <?php endfor; ?>
+            </ul>
+        </nav>
     </div>
 
     <!-- Footer -->
