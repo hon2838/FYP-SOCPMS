@@ -1,5 +1,8 @@
 <?php
 require_once 'telegram/telegram_handlers.php';
+require_once 'includes/PermissionManager.php';
+
+$permManager = new PermissionManager($conn, $_SESSION['user_id']);
 
 // Start session and enforce HTTPS
 session_start();
@@ -368,6 +371,22 @@ if (!isset($_SESSION['created'])) {
                     <div class="mb-4">
                         <label for="addUserPassword" class="form-label fw-medium">Password</label>
                         <input type="password" class="form-control form-control-lg shadow-sm" id="addUserPassword" name="password" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Roles</label>
+                        <div class="role-checkboxes">
+                            <?php
+                            $stmt = $conn->query("SELECT * FROM tbl_roles ORDER BY role_name");
+                            while ($role = $stmt->fetch()) {
+                                echo '<div class="form-check">';
+                                echo '<input class="form-check-input" type="checkbox" name="roles[]" ';
+                                echo 'value="' . $role['role_id'] . '" id="role' . $role['role_id'] . '">';
+                                echo '<label class="form-check-label" for="role' . $role['role_id'] . '">';
+                                echo htmlspecialchars($role['role_name']);
+                                echo '</label></div>';
+                            }
+                            ?>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label for="addUserType" class="form-label fw-medium">User Type</label>

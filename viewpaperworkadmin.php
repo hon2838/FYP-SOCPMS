@@ -3,6 +3,7 @@ require_once 'telegram/telegram_handlers.php';
 include 'dbconnect.php';
 include 'includes/header.php';
 include 'includes/email_functions.php';
+require_once 'includes/PermissionManager.php';
 
 // Start session with strict settings
 ini_set('session.cookie_httponly', 1);
@@ -73,6 +74,9 @@ if (!isset($_SESSION['paperwork_actions'])) {
     }
 }
 
+// Initialize permission manager
+$permManager = new PermissionManager($conn, $_SESSION['user_id']);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_POST['ppw_id'])) {
     // Validate and sanitize inputs
     $ppw_id = filter_var($_POST['ppw_id'], FILTER_VALIDATE_INT);
@@ -93,6 +97,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
         
         if ($checkStmt->rowCount() === 0) {
             throw new Exception("Paperwork not found");
+        }
+
+        // Check if user can approve submissions
+        if ($_POST['action'] == 'approve') {
+            $permManager->requirePermission('approve_submissions');
         }
 
         if ($_SESSION['user_type'] == 'hod') {
@@ -160,6 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
         die("An error occurred while processing your request.");
     }
 }
+
+// Check if user can view submissions
+$permManager->requirePermission('view_submissions');
 
 try {
     // Get paperwork details with error handling

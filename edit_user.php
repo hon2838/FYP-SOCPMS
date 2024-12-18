@@ -84,6 +84,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("Failed to update user");
         }
 
+        // Update user roles
+        if (isset($_POST['roles'])) {
+            // First delete existing roles
+            $stmt = $conn->prepare("DELETE FROM tbl_user_roles WHERE user_id = ?");
+            $stmt->execute([$id]);
+            
+            // Insert new roles
+            $stmt = $conn->prepare("INSERT INTO tbl_user_roles (user_id, role_id, assigned_by) VALUES (?, ?, ?)");
+            foreach ($_POST['roles'] as $role_id) {
+                $stmt->execute([$id, $role_id, $_SESSION['user_id']]);
+            }
+        }
+
         // Notify admin about successful user modification
         notifySystemError(
             'User Modified',

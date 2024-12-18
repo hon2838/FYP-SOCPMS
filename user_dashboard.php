@@ -84,6 +84,15 @@ if (!isset($_SESSION['dashboard_requests'])) {
 include 'dbconnect.php';
 include 'includes/header.php';
 
+// At the top after database connection
+require_once 'includes/PermissionManager.php';
+$permManager = new PermissionManager($conn, $_SESSION['user_id']);
+
+// Check permissions for actions
+$canCreateSubmission = $permManager->hasPermission('create_submission');
+$canEditSubmission = $permManager->hasPermission('edit_submission');
+$canDeleteSubmission = $permManager->hasPermission('delete_submission');
+
 try {
     // Sanitize and validate email
     $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
@@ -234,6 +243,10 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
         echo "<script>alert('Error performing search.');</script>";
     }
 }
+
+// At the top of the file after session checks
+require_once 'includes/PermissionManager.php';
+$permManager = new PermissionManager($conn, $_SESSION['user_id']);
 ?>
 <!DOCTYPE html>
 <html>
@@ -447,16 +460,19 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
                                            class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
-                                        <?php if ($row['status'] != 1): // Only show edit if not approved ?>
-                                        <a href="editpaperwork.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
-                                           class="btn btn-sm btn-warning">
-                                            <i class="fas fa-edit me-1"></i> Edit
-                                        </a>
-                                        <a href="user_dashboard.php?submit=delete&ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
-                                           class="btn btn-sm btn-danger"
-                                           onclick="return confirm('Are you sure you want to delete this paperwork?');">
-                                            <i class="fas fa-trash me-1"></i> Delete
-                                        </a>
+                                        <?php if ($permManager->hasPermission('edit_submission')): ?>
+                                            <a href="editpaperwork.php?ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit me-1"></i> Edit
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <?php if ($permManager->hasPermission('delete_submission')): ?>
+                                            <a href="user_dashboard.php?submit=delete&ppw_id=<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('Are you sure you want to delete this paperwork?');">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </a>
                                         <?php endif; ?>
                                     </div>
                                 </td>
