@@ -1,6 +1,5 @@
 <?php
 require_once 'telegram/telegram_handlers.php';
-require_once 'includes/rbac.php';
 
 // Start session and enforce HTTPS
 session_start();
@@ -28,23 +27,6 @@ if ($_SESSION['user_type'] !== 'admin') {
     header('Location: index.php');
     exit; 
 }
-
-// Check specific permissions
-if (!hasPermission($_SESSION['id'], 'manage_users')) {
-    notifySystemError(
-        'Permission Denied',
-        "User {$_SESSION['email']} attempted to access user management without permission",
-        __FILE__,
-        __LINE__
-    );
-    header('Location: index.php');
-    exit;
-}
-
-// Display options based on permissions
-$canCreateUsers = hasPermission($_SESSION['id'], 'create_users');
-$canDeleteUsers = hasPermission($_SESSION['id'], 'delete_users');
-$canEditUsers = hasPermission($_SESSION['id'], 'edit_users');
 
 try {
     // Include database connection
@@ -244,12 +226,10 @@ if (!isset($_SESSION['created'])) {
                             <i class="fas fa-user-circle text-primary me-2"></i>
                             User Accounts
                         </h5>
-                        <?php if ($canCreateUsers): ?>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
                             <i class="fas fa-plus me-2"></i>
                             Add New User
                         </button>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -271,27 +251,9 @@ if (!isset($_SESSION['created'])) {
                                     <td><?php echo $row['email']; ?></td>
                                     <td><?php echo $row['user_type']; ?></td>
                                     <td>
-    <?php if ($canDeleteUsers): ?>
-    <a href="admin_manage_account.php?submit=delete&id=<?php echo $row['id']; ?>" 
-       class="btn btn-danger btn-sm">
-        <i class="fas fa-trash me-1"></i> Delete
-    </a>
-    <?php endif; ?>
-    
-    <?php if ($canEditUsers): ?>
-    <button type="button" 
-            class="btn btn-primary btn-sm editUserBtn" 
-            data-bs-toggle="modal" 
-            data-bs-target="#editUserModal" 
-            data-id="<?php echo $row['id']; ?>"
-            data-name="<?php echo $row['name']; ?>"
-            data-email="<?php echo $row['email']; ?>"
-            data-user_type="<?php echo $row['user_type']; ?>">
-        <i class="fas fa-edit me-1"></i> Edit
-    </button>
-    <?php endif; ?>
-</td>
-
+                                        <a href="admin_manage_account.php?submit=delete&id=<?php echo $row['id']; ?>" class="btn btn-danger">Delete</a>
+                                        <button type="button" class="btn btn-primary editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="<?php echo $row['id']; ?>" data-name="<?php echo $row['name']; ?>" data-email="<?php echo $row['email']; ?>" data-user_type="<?php echo $row['user_type']; ?>">Edit</button>
+                                    </td>
                                 </tr>
                             <?php } ?>
                         </tbody>
