@@ -176,8 +176,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert into tbl_ppw
     try {
-        $sql = "INSERT INTO tbl_ppw (id, name, session, project_name, ref_number, ppw_type, project_date, document_path) 
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE(), ?)";
+        // Update the SQL query to include user_email
+        $sql = "INSERT INTO tbl_ppw (id, name, session, project_name, ref_number, ppw_type, project_date, document_path, user_email) 
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE(), ?, ?)";
                 
         $stmt = $conn->prepare($sql);
         if ($stmt->execute([
@@ -187,7 +188,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_POST['project_name'],
             $_POST['ref_number'],
             $_POST['ppw_type'],
-            $fileName
+            $fileName,
+            $_SESSION['email']  // Add the user's email from session
         ])) {
             // Notify admin via Telegram
             notifyPaperworkSubmission(

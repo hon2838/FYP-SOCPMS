@@ -178,21 +178,79 @@ $rows = $stmt->fetchAll();
 
 <body class="bg-light">
     <!-- Main Content with top margin to account for fixed navbar -->
-    <main class="pt-5 mt-5">
-        <!-- Welcome Section -->
-        <div class="container mb-2 py-5">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h2 class="card-title h4 mb-3">
-                        <i class="fas fa-wave-square text-primary me-2"></i>
-                        Welcome to SOC Paperwork Management System
-                    </h2>
-                    <p class="card-text text-muted mb-0">
-                        Manage and track your paperwork efficiently with our comprehensive system.
-                    </p>
+    <main class="pt-4">
+    <!-- Combined Welcome and Summary Cards -->
+    <div class="container mb-2">
+        <div class="row g-2">
+            <!-- Welcome Card -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <h2 class="card-title h4 mb-2">
+                            <i class="fas fa-wave-square text-primary me-2"></i>
+                            Welcome to SOC Paperwork Management System
+                        </h2>
+                        <p class="card-text text-muted mb-0">
+                            Manage and track your paperwork efficiently with our comprehensive system.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats Cards in 2x2 Grid -->
+            <div class="col-lg-4">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-2">
+                                <h6 class="text-muted mb-2 small">Total Submissions</h6>
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-0"><?php echo count($rows); ?></h4>
+                                    <i class="fas fa-file-alt text-primary ms-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-2">
+                                <h6 class="text-muted mb-2 small">Awaiting Review</h6>
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-0"><?php echo count(array_filter($rows, fn($row) => $row['current_stage'] == 'submitted')); ?></h4>
+                                    <i class="fas fa-hourglass-half text-warning ms-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-2">
+                                <h6 class="text-muted mb-2 small">Approved Today</h6>
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-0"><?php echo count(array_filter($rows, fn($row) => $row['status'] == 1 && date('Y-m-d', strtotime($row['approval_date'])) == date('Y-m-d'))); ?></h4>
+                                    <i class="fas fa-check-double text-success ms-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-2">
+                                <h6 class="text-muted mb-2 small">Active Users</h6>
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-0"><?php 
+                                        $stmt = $conn->query("SELECT COUNT(*) FROM tbl_users WHERE active = 1");
+                                        echo $stmt->fetchColumn();
+                                    ?></h4>
+                                    <i class="fas fa-users text-info ms-auto"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- Paperworks Table Section -->
         <div class="container">

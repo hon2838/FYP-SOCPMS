@@ -223,6 +223,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <div class="text-center mt-4">
                                     <p class="text-muted mb-0">
+                                        Forgot your password? 
+                                        <a href="reset_password.php" class="text-primary fw-medium">Reset here</a>
+                                    </p>
+                                    <p class="text-muted mb-0 mt-2">
                                         Don't have an account? 
                                         <a href="register.php" class="text-primary fw-medium">Register</a>
                                     </p>

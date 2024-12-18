@@ -21,12 +21,21 @@ services:
     environment:
       - MYSQL_DATABASE=soc_pms
       - MYSQL_ROOT_PASSWORD=
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  # Add this line
-      # Or set a password:
-      # - MYSQL_ROOT_PASSWORD=your_secure_password
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/soc_pms.sql:/docker-entrypoint-initdb.d/soc_pms.sql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=
+    depends_on:
+      - db
 
 volumes:
   mysql_data:

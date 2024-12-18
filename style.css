@@ -170,10 +170,15 @@ h2 {
 
 /* Improve button styling */
 .btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   font-weight: 500;
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 /* Button hover effects */
@@ -195,6 +200,7 @@ h2 {
   border-radius: 0.5rem;
   box-shadow: 0 1px 2px rgba(0,0,0,.02);
   transition: transform 0.1s ease, box-shadow 0.1s ease; /* Faster transition */
+  margin-bottom: 0 !important; /* Reduced from 1.5rem */
 }
 
 .card:hover {
@@ -246,7 +252,6 @@ h2 {
 main {
   padding-top: 6rem !important; /* Increased from default */
   margin-top: 1rem !important;
-  flex: 1 0 auto;
 }
 
 .navbar-brand {
@@ -256,12 +261,14 @@ main {
 
 /* Modern Container Padding */
 .container {
-  padding: 2rem 1rem;
+  padding: 0.5rem;
 }
 
 /* Container spacing for form pages */
 .container.py-5 {
   margin-top: 2rem;
+  padding-top: 1.5rem !important; /* Reduced from 3rem */
+  padding-bottom: 1.5rem !important; /* Reduced from 3rem */
 }
 
 /* Modern Modal Styles */
@@ -291,6 +298,11 @@ main {
 .card:hover {
   transform: translateY(-2px); /* Reduced from -5px */
   box-shadow: 0 2px 8px rgba(0,0,0,.05) !important; /* Reduced shadow intensity */
+}
+
+.card i {
+  font-size: 1.5rem;
+  opacity: 0.8;
 }
 
 .table th {
@@ -773,6 +785,7 @@ body {
 .table td, .table th {
     border-color: var(--border-color) !important;
     color: var(--text-primary);
+    padding: 0.75rem 1rem !important; /* Reduced from 1rem 1.25rem */
 }
 
 .table thead th {
@@ -888,10 +901,13 @@ body {
     background-color: var(--card-bg) !important;
     border-bottom-color: var(--card-border) !important;
     color: var(--text-primary) !important;
+    padding-top: 0.75rem !important; /* Reduced from 1rem */
+    padding-bottom: 0.75rem !important; /* Reduced from 1rem */
 }
 
 .card-body {
     color: var(--text-primary) !important;
+    padding: 1rem !important; /* Reduced from 1.5rem */
 }
 
 .card-footer {
@@ -923,6 +939,7 @@ body {
     background-color: var(--card-bg) !important;
     border-color: var (--card-border) !important;
     color: var(--text-primary) !important;
+    padding: 0.75rem 1rem; /* Reduced from 1rem 1.25rem */
 }
 
 /* Tables */
@@ -941,6 +958,7 @@ body {
 .table td, .table th {
     border-color: var(--border-color) !important;
     color: var(--text-primary);
+    padding: 0.75rem 1rem !important; /* Reduced from 1rem 1.25rem */
 }
 
 .table-hover tbody tr:hover {
@@ -1236,4 +1254,178 @@ body {
     background-color: var(--card-bg);
     border-color: var(--border-color);
     color: var(--text-primary);
+}
+
+/* Dark theme styles */
+body.dark-theme {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.dark-theme .card {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+.dark-theme .form-control {
+    background-color: #333333;
+    border-color: #404040;
+    color: #ffffff;
+}
+
+/* Profile card styles */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+}
+
+/* Dark theme styles */
+body.dark-theme {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.dark-theme .card {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+.dark-theme .card-header {
+    background-color: #2d2d2d !important;
+    border-bottom-color: #404040;
+}
+
+.dark-theme .form-control,
+.dark-theme .form-select {
+    background-color: #333333;
+    border-color: #404040;
+    color: #ffffff;
+}
+
+.dark-theme .text-muted {
+    color: #888888 !important;
+}
+
+/* Activity Log */
+.list-group-item {
+    transition: background-color 0.2s ease;
+    padding: 0.75rem 0; /* Reduced from 1rem 1.25rem */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.list-group-item:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Reduce card spacing */
+.container.mb-4 {
+    margin-bottom: 1rem !important; /* Reduced from 1.5rem */
+}
+
+/* Adjust spacing for dashboard cards */
+.row.g-3 {
+    gap: 0.75rem !important; /* Reduced from 1rem */
+}
+
+/* Adjust main content spacing */
+main.pt-5.mt-5 {
+    padding-top: 4rem !important; /* Reduced from 6rem */
+    margin-top: 0.5rem !important; /* Reduced from 1rem */
+}
+
+/* Reduce card header padding */
+.card-header.bg-white.py-3 {
+    padding-top: 0.75rem !important; /* Reduced from 1rem */
+    padding-bottom: 0.75rem !important; /* Reduced from 1rem */
+}
+
+/* Ensure consistent card heights */
+.h-100 {
+    height: 100% !important;
+}
+
+/* Tighter grid spacing */
+.row.g-2 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.25rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Tighter spacing for cards */
+.card {
+    margin-bottom: 0 !important;
+}
+
+.card-body {
+    padding: 1rem !important;
+}
+
+/* Ensure consistent height */
+.h-100 {
+    height: 100% !important;
+}
+
+/* Tighter grid spacing */
+.row.g-2 {
+    --bs-gutter-x: 0.5rem;
+    --bs-gutter-y: 0.5rem;
+}
+
+/* Reduce main content top spacing */
+main.pt-4 {
+    padding-top: 4rem !important;
+}
+
+/* Compact card body for stats */
+.card-body.p-2 {
+    padding: 0.75rem !important;
+}
+
+/* Smaller text for stat cards */
+.card-body.p-2 h6.small {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem !important;
+}
+
+.card-body.p-2 h4 {
+    font-size: 1.25rem;
+}
+
+.card-body.p-2 i {
+    font-size: 1.25rem;
+    opacity: 0.8;
+}
+
+/* Make cards more compact on mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.25rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
 }

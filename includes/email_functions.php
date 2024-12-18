@@ -133,3 +133,29 @@ function sendCEONotificationEmail($ceoEmail, $paperworkDetails, $hodName) {
         return false;
     }
 }
+
+function sendPasswordResetEmail($userEmail, $resetLink) {
+    $mail = configureMailer();
+    if (!$mail) return false;
+
+    $mail->addAddress($userEmail);
+    $mail->Subject = 'Password Reset Request';
+    
+    $message = "
+    <html>
+    <body style='font-family: Arial, sans-serif;'>
+        <h2>Password Reset Request</h2>
+        <p>You have requested to reset your password. Click the link below to proceed:</p>
+        <p><a href='{$resetLink}'>Reset Password</a></p>
+        <p>This link will expire in 1 hour.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <br>
+        <p>Regards,<br>SOC Paperwork Management System</p>
+    </body>
+    </html>";
+    
+    $mail->isHTML(true);
+    $mail->Body = $message;
+    
+    return $mail->send();
+}

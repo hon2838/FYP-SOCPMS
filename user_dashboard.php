@@ -123,77 +123,116 @@ try {
 // Get user type based on email from database
 $email = $_SESSION['email'];
 
-// Get user ID based on email
+// Get user ID with proper error handling
 $userIdQuery = "SELECT id FROM tbl_users WHERE email = ?";
 $userIdStmt = $conn->prepare($userIdQuery);
 $userIdStmt->execute([$email]);
 $userIdResult = $userIdStmt->fetch(PDO::FETCH_ASSOC);
 
-$user_id = $userIdResult['id'];
+$user_id = $userIdResult['id'] ?? null;
 
-// Default SQL query to load patients
-$sql = "SELECT p.*, u.name 
+if (!isset($user_id) || !is_numeric($user_id)) {
+    error_log("Invalid user ID in dashboard query");
+    die("An error occurred. Please try again later.");
+}
+
+// Corrected SQL query with proper join condition and alias references
+$sql = "SELECT p.*, u.name, u.email,
+        p.submission_time, p.status, p.ppw_id,
+        p.document_path, p.ref_number, p.session
         FROM tbl_ppw p 
-        JOIN tbl_users u ON p.id = u.id 
-        WHERE p.id = ? 
+        INNER JOIN tbl_users u ON p.user_email = u.email 
+        WHERE p.user_email = :email 
         ORDER BY p.submission_time DESC";
-$stmt = $conn->prepare($sql);
-$stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
 
-// Handle deletion of patient records
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(':email', $email, PDO::PARAM_STR);
+
+try {
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if (empty($rows)) {
+        // Handle no results
+        $rows = [];
+    }
+} catch (PDOException $e) {
+    error_log("Query error in user dashboard: " . $e->getMessage());
+    die("An error occurred while retrieving paperwork.");
+}
+
+// Add before displaying the pagination
+$results_per_page = 10; // Or your desired number
+$total_results = count($rows);
+$number_of_pages = ceil($total_results / $results_per_page);
+
+if (isset($_GET['pageno'])) {
+    $pageno = (int)$_GET['pageno'];
+    $page_first_result = ($pageno - 1) * $results_per_page;
+} else {
+    $pageno = 1;
+    $page_first_result = 0;
+}
+
+// Handle deletion with proper validation
 if (isset($_GET['submit']) && $_GET['submit'] == 'delete') {
-    $ppw_id = $_GET['ppw_id'];
     try {
-        $sqldeletepatient = "DELETE FROM tbl_ppw WHERE ppw_id = ?";
-        $stmt = $conn->prepare($sqldeletepatient);
-        $stmt->execute([$ppw_id]);
-        echo "<script>alert('Patient deleted successfully.');</script>";
-        echo "<script>window.location.href='admin_dashboard.php';</script>";
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
+        $ppw_id = filter_input(INPUT_GET, 'ppw_id', FILTER_VALIDATE_INT);
+        if (!$ppw_id) {
+            throw new Exception("Invalid paperwork ID");
+        }
+
+        // Verify user owns this paperwork
+        $verifyStmt = $conn->prepare("SELECT ppw_id FROM tbl_ppw WHERE ppw_id = ? AND user_email = ?");
+        $verifyStmt->execute([$ppw_id, $email]);
+        
+        if ($verifyStmt->rowCount() === 0) {
+            throw new Exception("Paperwork not found or access denied");
+        }
+
+        $deleteStmt = $conn->prepare("DELETE FROM tbl_ppw WHERE ppw_id = ?");
+        $deleteStmt->execute([$ppw_id]);
+        
+        echo "<script>
+                alert('Paperwork deleted successfully.');
+                window.location.href='user_dashboard.php';
+              </script>";
+    } catch (Exception $e) {
+        error_log("Delete error: " . $e->getMessage());
+        echo "<script>alert('Error: " . htmlspecialchars($e->getMessage()) . "');</script>";
     }
 }
 
-// Handle search functionality
+// Search functionality with prepared statements
 if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
-    $search_query = $_GET['search_query'];
-    $search_option = $_GET['search_option'];
+    try {
+        $search_query = '%' . trim($_GET['search_query']) . '%';
+        $search_option = $_GET['search_option'];
 
-    if ($search_option == 'name') {
-        $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE name LIKE ?";
-    } else if ($search_option == 'email') {
-        $sqlloadpatients = "SELECT * FROM tbl_ppw WHERE email LIKE ?";
+        $searchSql = match($search_option) {
+            'name' => "SELECT p.*, u.name, u.email 
+                      FROM tbl_ppw p 
+                      INNER JOIN tbl_users u ON p.user_email = u.email 
+                      WHERE p.name LIKE ? AND p.user_email = ?",
+            'email' => "SELECT p.*, u.name, u.email 
+                       FROM tbl_ppw p 
+                       INNER JOIN tbl_users u ON p.user_email = u.email 
+                       WHERE p.user_email = ?",
+            default => throw new Exception("Invalid search option")
+        };
+
+        $searchStmt = $conn->prepare($searchSql);
+        $searchParams = $search_option === 'name' ? [$search_query, $email] : [$email];
+        $searchStmt->execute($searchParams);
+        $rows = $searchStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($rows)) {
+            echo "<script>alert('No results found.');</script>";
+        }
+    } catch (Exception $e) {
+        error_log("Search error: " . $e->getMessage());
+        echo "<script>alert('Error performing search.');</script>";
     }
-
-    $stmt = $conn->prepare($sqlloadpatients);
-    $stmt->execute(['%' . $search_query . '%']);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if (count($rows) == 0) {
-        echo "<script>alert('No results found.');</script>";
-        echo "<script>window.location.href='main.php';</script>";
-    }
-} else {
-    // Pagination logic
-    $results_per_page = 10;
-    $pageno = isset($_GET['pageno']) ? (int)$_GET['pageno'] : 1;
-    $page_first_result = ($pageno - 1) * $results_per_page;
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
-    $stmt->execute();
-    
-    $number_of_results = $stmt->rowCount();
-    $number_of_pages = ceil($number_of_results / $results_per_page);
-
-    $sql .= " LIMIT :first_result, :results_per_page";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
-    $stmt->bindParam(':first_result', $page_first_result, PDO::PARAM_INT);
-    $stmt->bindParam(':results_per_page', $results_per_page, PDO::PARAM_INT);
-    $stmt->execute();
-
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 <!DOCTYPE html>
@@ -202,7 +241,7 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOC Paperwork Management System</title>
-    <link rel="stylesheet" href="mystyle.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
@@ -253,9 +292,9 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
 </nav>
 
 <!-- Main Content with top margin to account for fixed navbar -->
-<main class="pt-5 mt-5">
+<main>
     <!-- Welcome Section -->
-    <div class="container py-5">
+    <div class="container">
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
                 <h2 class="card-title h4 mb-3">
@@ -268,6 +307,104 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
             </div>
         </div>
     </div>
+
+<!-- Dashboard Summary Cards -->
+<div class="container mb-3">
+    <div class="row g-2">
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-2">Total Paperworks</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0"><?php echo count($rows); ?></h3>
+                        <i class="fas fa-file-alt text-primary ms-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-2">Pending Approval</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0"><?php echo count(array_filter($rows, fn($row) => $row['status'] != 1)); ?></h3>
+                        <i class="fas fa-clock text-warning ms-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-2">Approved</h6>
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0"><?php echo count(array_filter($rows, fn($row) => $row['status'] == 1)); ?></h3>
+                        <i class="fas fa-check-circle text-success ms-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h6 class="text-muted mb-2">Last Submission</h6>
+                    <div class="d-flex align-items-center">
+                        <small class="text-muted"><?php echo !empty($rows) ? date('d M Y', strtotime($rows[0]['submission_time'])) : 'N/A'; ?></small>
+                        <i class="fas fa-calendar text-info ms-auto"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Recent Activity in same row -->
+<div class="container mb-3">
+    <div class="row g-2">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h5 class="card-title mb-3">Quick Actions</h5>
+                    <div class="d-grid gap-2">
+                        <a href="create_paperwork.php" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>New Paperwork
+                        </a>
+                        <a href="user_manage_account.php" class="btn btn-outline-primary">
+                            <i class="fas fa-user-cog me-2"></i>Account Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-3">
+                    <h5 class="card-title mb-3">Recent Activity</h5>
+                    <div class="list-group list-group-flush">
+                        <?php 
+                        $recent_activities = array_slice($rows, 0, 3);
+                        foreach($recent_activities as $activity): 
+                        ?>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><?php echo htmlspecialchars($activity['ref_number']); ?></h6>
+                                    <small class="text-muted">
+                                        <?php echo htmlspecialchars($activity['project_name']); ?>
+                                    </small>
+                                </div>
+                                <span class="badge <?php echo $activity['status'] == 1 ? 'bg-success' : 'bg-warning'; ?>">
+                                    <?php echo $activity['status'] == 1 ? 'Approved' : 'Pending'; ?>
+                                </span>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Main Content -->
 <div class="container">
@@ -340,7 +477,7 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
     </div>
 
     <!-- Mobile View Cards -->
-    <div class="d-md-none mt-4">
+    <div class="d-md-none">
         <?php foreach ($rows as $row) { ?>
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
@@ -364,7 +501,7 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-center mt-4">
+    <div class="d-flex justify-content-center">
         <nav aria-label="Page navigation">
             <ul class="pagination">
                 <?php for ($page = 1; $page <= $number_of_pages; $page++) { ?>
@@ -405,68 +542,48 @@ if (isset($_GET['search_query']) && isset($_GET['search_option'])) {
     </div>
 
     <!-- Status Modal -->
-    <div class="modal fade" id="statusModal<?php echo $row['ppw_id']; ?>" 
-        tabindex="-1" 
-        aria-hidden="true"
-        data-bs-backdrop="static">
+    <?php if (!empty($rows)) { foreach ($rows as $row) { ?>
+    <div class="modal fade" id="statusModal<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+         tabindex="-1" 
+         aria-hidden="true"
+         data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    Paperwork Status Details
-                </h5>
-                <button type="button" 
-                        class="btn-close" 
-                        data-bs-dismiss="modal" 
-                        aria-label="Close"></button>
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Paperwork Status Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light" style="width: 40%">Submission Details</th>
+                                <td>
+                                    <?php if (!empty($row['submission_time'])): ?>
+                                        <p class="mb-1"><strong>Date:</strong> 
+                                            <?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?>
+                                        </p>
+                                        <p class="mb-0"><strong>By:</strong> 
+                                            <?php echo htmlspecialchars($row['name'] ?? 'Unknown'); ?>
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="mb-0">No submission details available</p>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-            <div class="modal-body py-4">
-                <table class="table table-bordered">
-                    <tbody>
-                        <tr>
-                        <th class="bg-light" style="width: 40%">Submission Details</th>
-                        <td>
-                            <p class="mb-1"><strong>Date:</strong> 
-                                <?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?>
-                            </p>
-                            <p class="mb-0"><strong>By:</strong> 
-                                <?php echo htmlspecialchars($row['name']); ?>
-                            </p>
-                        </td>
-                        </tr>
-                        <?php if($row['status'] == 1): ?>
-                        <tr>
-                        <th class="bg-light">Approval Details</th>
-                        <td>
-                            <p class="mb-1"><strong>Status:</strong> 
-                                <span class="badge bg-success">Approved</span>
-                            </p>
-                            <p class="mb-1"><strong>By:</strong> 
-                                <?php echo htmlspecialchars($row['approved_by'] ?? 'Admin'); ?>
-                            </p>
-                            <p class="mb-0"><strong>Note:</strong> 
-                                <?php echo htmlspecialchars($row['admin_note'] ?? 'No note provided'); ?>
-                            </p>
-                        </td>
-                        </tr>
-                        <?php else: ?>
-                        <tr>
-                        <th class="bg-light">Status</th>
-                        <td>
-                            <span class="badge bg-warning">Pending Approval</span>
-                        </td>
-                        </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
         </div>
     </div>
+    <?php } } ?>
 
 <?php foreach ($rows as $row) { ?>
     <div class="modal fade" id="patientModal<?php echo $row['ppw_id']; ?>" tabindex="-1" aria-labelledby="patientModalLabel<?php echo $row['ppw_id']; ?>" aria-hidden="true">

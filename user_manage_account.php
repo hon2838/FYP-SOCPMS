@@ -62,6 +62,28 @@ include 'dbconnect.php';
 include 'includes/header.php';
 
 try {
+    // Get user data
+    $stmt = $conn->prepare("SELECT * FROM tbl_users WHERE email = ?");
+    $stmt->execute([$_SESSION['email']]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$row) {
+        throw new Exception("User not found");
+    }
+
+    // Get user settings
+    $settings = json_decode($row['settings'] ?? '{}', true) ?: [
+        'theme' => 'light',
+        'email_notifications' => true,
+        'browser_notifications' => false,
+        'compact_view' => false
+    ];
+} catch (Exception $e) {
+    error_log("Error fetching user data: " . $e->getMessage());
+    die("An error occurred. Please try again later.");
+}
+
+try {
     // Sanitize and validate email
     $email = filter_var($_SESSION['email'], FILTER_SANITIZE_EMAIL);
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -98,6 +120,71 @@ try {
 } catch (Exception $e) {
     error_log("Error in user_manage_account.php: " . $e->getMessage());
     die("An error occurred. Please try again later.");
+}
+
+// Profile update handler
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    try {
+        if ($_POST['action'] === 'update_profile') {
+            // Validate inputs
+            $name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
+            $currentPassword = $_POST['current_password'];
+            $newPassword = $_POST['new_password'];
+            
+            // Get current user data
+            $stmt = $conn->prepare("SELECT password FROM tbl_users WHERE email = ?");
+            $stmt->execute([$_SESSION['email']]);
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Update name
+            $updateFields = ["name = ?"]; 
+            $params = [$name];
+
+            // Update password if provided
+            if ($currentPassword && $newPassword) {
+                if (!password_verify($currentPassword, $userData['password'])) {
+                    throw new Exception("Current password is incorrect");
+                }
+                
+                // Validate new password
+                if (strlen($newPassword) < 8) {
+                    throw new Exception("Password must be at least 8 characters");
+                }
+                
+                $updateFields[] = "password = ?";
+                $params[] = password_hash($newPassword, PASSWORD_DEFAULT);
+            }
+
+            // Update preferences
+            $settings = [
+                'theme' => $_POST['theme'],
+                'email_notifications' => isset($_POST['email_notifications']),
+            ];
+            $updateFields[] = "settings = ?";
+            $params[] = json_encode($settings);
+
+            // Add WHERE clause parameter
+            $params[] = $_SESSION['email'];
+
+            // Construct and execute update query
+            $sql = "UPDATE tbl_users SET " . implode(", ", $updateFields) . " WHERE email = ?";
+            $stmt = $conn->prepare($sql);
+            
+            if (!$stmt->execute($params)) {
+                throw new Exception("Failed to update profile");
+            }
+
+            // Update session data
+            $_SESSION['name'] = $name;
+            $_SESSION['settings'] = $settings;
+
+            // Show success message
+            echo "<script>alert('Profile updated successfully');</script>";
+        }
+    } catch (Exception $e) {
+        error_log("Profile update error: " . $e->getMessage());
+        echo "<script>alert('Error: " . htmlspecialchars($e->getMessage()) . "');</script>";
+    }
 }
 
     $results_per_page = 10;
@@ -174,43 +261,59 @@ try {
 
         <!-- Account Table Section -->
         <div class="container">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-user-circle text-primary me-2"></i>
-                            Account Details
-                        </h5>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th scope="col" class="px-4 py-3">Staff ID</th>
-                                    <th scope="col" class="px-4 py-3">Name</th>
-                                    <th scope="col" class="px-4 py-3">Email</th>
-                                    <th scope="col" class="px-4 py-3">User Type</th>
-                                    <th scope="col" class="px-4 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($rows as $row) { ?>
-                                    <tr>
-                                        <td class="px-4"><?php echo $row['id']; ?></td>
-                                        <td class="px-4"><?php echo $row['name']; ?></td>
-                                        <td class="px-4"><?php echo $row['email']; ?></td>
-                                        <td class="px-4"><?php echo $row['user_type']; ?></td>
-                                        <td class="px-4">
-                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUserModal">
-                                                <i class="fas fa-edit me-1"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
+            <div class="row">
+                <!-- Profile Information Card -->
+                <div class="col-md-12 mb-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user-circle text-primary me-2"></i>
+                                Profile Information
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="profileForm" method="POST" action="user_manage_account.php">
+                                <input type="hidden" name="action" value="update_profile">
+                                
+                                <!-- Personal Information -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-3">Personal Details</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" name="name" 
+                                                value="<?php echo htmlspecialchars($row['name']); ?>" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email" 
+                                                value="<?php echo htmlspecialchars($row['email']); ?>" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Security Settings -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold mb-3">Security</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Current Password</label>
+                                            <input type="password" class="form-control" name="current_password">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">New Password</label>
+                                            <input type="password" class="form-control" name="new_password">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -274,6 +377,8 @@ try {
     </div>
 </div>
 
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
   document.querySelectorAll('.editUserBtn').forEach(item => {
@@ -302,6 +407,76 @@ try {
           }
       });
   });
+
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    const newPassword = document.querySelector('input[name="new_password"]').value;
+    const currentPassword = document.querySelector('input[name="current_password"]').value;
+
+    if (newPassword && !currentPassword) {
+        e.preventDefault();
+        alert('Please enter your current password to change password');
+    }
+
+    if (newPassword && newPassword.length < 8) {
+        e.preventDefault();
+        alert('New password must be at least 8 characters long');
+    }
+});
+
+// Theme switcher
+document.querySelector('select[name="theme"]').addEventListener('change', function() {
+    document.body.classList.toggle('dark-theme', this.value === 'dark');
+});
+
+// Add this to your existing JavaScript
+document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('update_settings.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Apply theme change immediately
+            document.body.classList.toggle('dark-theme', data.theme === 'dark');
+            alert('Preferences saved successfully');
+        } else {
+            throw new Error('Failed to save preferences');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to save preferences. Please try again.');
+    });
+});
+
+// Add password validation
+document.querySelectorAll('input[name="new_password"]').forEach(input => {
+    input.addEventListener('input', function() {
+        const password = this.value;
+        let isValid = true;
+        let message = [];
+
+        if (password.length < 8) {
+            isValid = false;
+            message.push('Password must be at least 8 characters');
+        }
+        if (!/[A-Z]/.test(password)) {
+            isValid = false;
+            message.push('Include at least one uppercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+            isValid = false;
+            message.push('Include at least one number');
+        }
+
+        this.setCustomValidity(isValid ? '' : message.join('\n'));
+    });
+});
+
 </script>
 </body>
 </html>
