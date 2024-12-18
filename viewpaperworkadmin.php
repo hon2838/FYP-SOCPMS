@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
                         hod_approval_date = ?,
                         current_stage = 'ceo_review'
                         WHERE ppw_id = ?";
-                $message = "Paperwork approved and forwarded to CEO";
+                 $message = "Paperwork approved and forwarded to Dean";
             } else {
                 $sql = "UPDATE tbl_ppw SET 
                         hod_approval = 0,
@@ -123,17 +123,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && isset($_P
             $ceoEmail = $ceoStmt->fetchColumn();
 
             if ($ceoEmail) {
-                sendCEONotificationEmail($ceoEmail, [
+                sendDeanNotificationEmail($ceoEmail, [
                     'ref_number' => $paperwork['ref_number'],
                     'project_name' => $paperwork['project_name'],
                     'hod_approval_date' => date('Y-m-d H:i:s')
                 ], $_SESSION['name']);
             }
         } 
-        elseif ($_SESSION['user_type'] == 'ceo') {
+        elseif ($_SESSION['user_type'] == 'dean') {  // Changed from 'ceo'
             if ($_POST['action'] == 'approve') {
                 $sql = "UPDATE tbl_ppw SET 
-                        ceo_approval = 1,
+                        ceo_approval = 1,  // Keep column name as is
                         ceo_note = ?,
                         ceo_approval_date = ?,
                         current_stage = 'approved',

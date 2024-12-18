@@ -98,18 +98,18 @@ function sendHODNotificationEmail($hodEmail, $userName, $paperworkDetails) {
     }
 }
 
-function sendCEONotificationEmail($ceoEmail, $paperworkDetails, $hodName) {
+function sendDeanNotificationEmail($deanEmail, $paperworkDetails, $hodName) {
     try {
         $mail = configureMailer();
         if (!$mail) return false;
 
-        $mail->addAddress($ceoEmail);
+        $mail->addAddress($deanEmail);
         $mail->Subject = 'Paperwork Endorsed by HOD - Pending Review';
         
         $message = "
         <html>
         <body style='font-family: Arial, sans-serif;'>
-            <h2>Dear CEO,</h2>
+            <h2>Dear Dean,</h2>
             <p>A paperwork has been endorsed by the HOD and requires your review:</p>
             <ul>
                 <li><strong>Reference Number:</strong> {$paperworkDetails['ref_number']}</li>

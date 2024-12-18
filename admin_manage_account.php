@@ -376,16 +376,15 @@ if (!isset($_SESSION['created'])) {
                             <option value="admin">System Admin</option>
                             <option value="user">Staff</option>
                             <option value="hod">Head of Department</option>
-                            <option value="ceo">CEO</option>
+                            <option value="dean">Dean</option> 
                         </select>
                         <div class="mb-3">
                             <label for="department" class="form-label fw-medium mt-3">Department</label>
                             <select class="form-select form-select-lg shadow-sm" id="department" name="department">
                                 <option value="">Select department</option>
-                                <option value="computing">School of Computing</option>
-                                <option value="business">School of Business</option>
-                                <option value="engineering">School of Engineering</option>
-                                <!-- Add more departments as needed -->
+                                <option value="management_staff">Management Staff</option>
+                                <option value="lecturers">Lecturers</option>
+                                <option value="general_worker">General Worker</option>
                             </select>
                             <small class="text-muted">Required for Staff and Head of Department</small>
                         </div>

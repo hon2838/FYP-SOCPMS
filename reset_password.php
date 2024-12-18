@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Send reset email
         include 'includes/email_functions.php';
-        $resetLink = "http://{$_SERVER['HTTP_HOST']}/include/update_password.php?token=" . $token;
+        $resetLink = "http://{$_SERVER['HTTP_HOST']}update_password.php?token=" . $token;
         sendPasswordResetEmail($email, $resetLink);
 
         echo "<script>alert('Password reset instructions have been sent to your email.');</script>";

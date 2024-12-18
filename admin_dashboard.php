@@ -335,7 +335,7 @@ $rows = $stmt->fetchAll();
                                                                 echo 'Pending HOD Review';
                                                                 break;
                                                             case 'ceo_review':
-                                                                echo 'Pending CEO Review';
+                                                                echo 'Pending Dean Review';
                                                                 break;
                                                             case 'approved':
                                                                 echo 'Approved';
@@ -463,11 +463,11 @@ $rows = $stmt->fetchAll();
                     </div>
                 </div>
 
-                <!-- CEO Review Card -->
+                <!-- Dean Review Card -->
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h6 class="card-subtitle mb-3 text-muted">
-                            <i class="fas fa-user-shield me-2"></i>CEO Review
+                            <i class="fas fa-user-shield me-2"></i>Dean Review 
                         </h6>
                         <?php if($row['hod_approval'] && $row['ceo_approval'] !== null): ?>
                             <div class="mb-3">
