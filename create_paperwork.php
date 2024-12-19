@@ -5,17 +5,22 @@ ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_samesite', 'Strict');
 session_start();
 
+// Set security headers
+header("X-Frame-Options: DENY");
+header("X-XSS-Protection: 1; mode=block");
+header("X-Content-Type-Options: nosniff");
+
+// Include dependencies in correct order
+require_once 'dbconnect.php';
+require_once 'includes/email_functions.php';
+require_once 'telegram/telegram_handlers.php';
+
 // Strict session validation
 if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
     error_log("Unauthorized access attempt to create_paperwork.php");
     header('Location: index.php');
     exit;
 }
-
-// Set security headers
-header("X-Frame-Options: DENY");
-header("X-XSS-Protection: 1; mode=block");
-header("X-Content-Type-Options: nosniff");
 
 header("Referrer-Policy: strict-origin-when-cross-origin");
 header("Permissions-Policy: geolocation=(), microphone=(), camera=()");

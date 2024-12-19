@@ -88,6 +88,23 @@ try {
     die("An error occurred. Please try again later.");
 }
 
+function getStatusText($stage) {
+    switch($stage) {
+        case 'submitted':
+            return 'Submitted';
+        case 'hod_review':
+            return 'Pending HOD Review';
+        case 'dean_review':
+            return 'Pending Dean Review';
+        case 'approved':
+            return 'Approved';
+        case 'rejected':
+            return 'Returned';
+        default:
+            return 'Processing';
+    }
+}
+
 include 'includes/header.php';
 
 // Get user type based on email from database
@@ -227,7 +244,13 @@ $rows = $stmt->fetchAll();
                             <div class="card-body p-2">
                                 <h6 class="text-muted mb-2 small">Approved Today</h6>
                                 <div class="d-flex align-items-center">
-                                    <h4 class="mb-0"><?php echo count(array_filter($rows, fn($row) => $row['status'] == 1 && date('Y-m-d', strtotime($row['approval_date'])) == date('Y-m-d'))); ?></h4>
+                                    <h4 class="mb-0"><?php 
+                                        echo count(array_filter($rows, function($row) {
+                                            return $row['status'] == 1 && 
+                                                   isset($row['dean_approval_date']) && 
+                                                   date('Y-m-d', strtotime($row['dean_approval_date'])) == date('Y-m-d');
+                                        }));
+                                    ?></h4>
                                     <i class="fas fa-check-double text-success ms-auto"></i>
                                 </div>
                             </div>
@@ -311,7 +334,7 @@ $rows = $stmt->fetchAll();
                                                                 case 'hod_review':
                                                                     echo 'btn-warning';
                                                                     break;
-                                                                case 'ceo_review':
+                                                                case 'dean_review': // Changed from ceo_review
                                                                     echo 'btn-info';
                                                                     break;
                                                                 case 'approved':
@@ -325,28 +348,8 @@ $rows = $stmt->fetchAll();
                                                             }
                                                         ?>"
                                                         data-bs-toggle="modal" 
-                                                        data-bs-target="#statusModal<?php echo $row['ppw_id']; ?>">
-                                                    <?php 
-                                                        switch($row['current_stage']) {
-                                                            case 'submitted':
-                                                                echo 'Submitted';
-                                                                break;
-                                                            case 'hod_review':
-                                                                echo 'Pending HOD Review';
-                                                                break;
-                                                            case 'ceo_review':
-                                                                echo 'Pending Dean Review';
-                                                                break;
-                                                            case 'approved':
-                                                                echo 'Approved';
-                                                                break;
-                                                            case 'rejected':
-                                                                echo 'Returned';
-                                                                break;
-                                                            default:
-                                                                echo 'Processing';
-                                                        }
-                                                    ?>
+                                                        data-bs-target="#statusModal_<?php echo htmlspecialchars($row['ppw_id']); ?>">
+                                                    <?php echo getStatusText($row['current_stage']); ?>
                                                 </button>
                                             </td>
                                         </tr>
@@ -402,103 +405,109 @@ $rows = $stmt->fetchAll();
 </div>
 
 <!-- Status Modal -->
-<div class="modal fade" id="statusModal<?php echo $row['ppw_id']; ?>" 
-     tabindex="-1" 
-     aria-hidden="true"
-     data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">
-                    <i class="fas fa-info-circle text-primary me-2"></i>
-                    Paperwork Status Details
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <!-- Status Card -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-3 text-muted">
-                            <i class="fas fa-file-alt me-2"></i>Submission Information
-                        </h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <p class="mb-1"><small class="fw-medium">Date:</small></p>
-                                <p class="mb-0"><?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p class="mb-1"><small class="fw-medium">Submitted By:</small></p>
-                                <p class="mb-0"><?php echo htmlspecialchars($row['name']); ?></p>
+<?php foreach ($rows as $row): ?>
+    <div class="modal fade" 
+         id="statusModal_<?php echo htmlspecialchars($row['ppw_id']); ?>" 
+         tabindex="-1" 
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Paperwork Status Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Status Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-3 text-muted">
+                                <i class="fas fa-file-alt me-2"></i>Submission Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><small class="fw-medium">Date:</small></p>
+                                    <p class="mb-0"><?php echo date('d M Y, h:i A', strtotime($row['submission_time'])); ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><small class="fw-medium">Submitted By:</small></p>
+                                    <p class="mb-0"><?php echo htmlspecialchars($row['name']); ?></p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- HOD Review Card -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-3 text-muted">
-                            <i class="fas fa-user-tie me-2"></i>HOD Review
-                        </h6>
-                        <?php if($row['hod_approval'] !== null): ?>
-                            <div class="mb-3">
-                                <p class="mb-1"><small class="fw-medium">Status:</small></p>
-                                <span class="badge <?php echo $row['hod_approval'] ? 'bg-success' : 'bg-danger'; ?>">
-                                    <?php echo $row['hod_approval'] ? 'Approved' : 'Returned'; ?>
-                                </span>
-                            </div>
-                            <?php if($row['hod_note']): ?>
+                    <!-- HOD Review Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-3 text-muted">
+                                <i class="fas fa-user-tie me-2"></i>HOD Review
+                            </h6>
+                            <?php if($row['hod_approval'] !== null): ?>
                                 <div class="mb-3">
-                                    <p class="mb-1"><small class="fw-medium">Note:</small></p>
-                                    <p class="mb-0"><?php echo htmlspecialchars($row['hod_note']); ?></p>
+                                    <p class="mb-1"><small class="fw-medium">Status:</small></p>
+                                    <span class="badge <?php echo $row['hod_approval'] ? 'bg-success' : 'bg-danger'; ?>">
+                                        <?php echo $row['hod_approval'] ? 'Approved' : 'Returned'; ?>
+                                    </span>
                                 </div>
+                                <?php if($row['hod_note']): ?>
+                                    <div class="mb-3">
+                                        <p class="mb-1"><small class="fw-medium">Note:</small></p>
+                                        <p class="mb-0"><?php echo htmlspecialchars($row['hod_note']); ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                <small class="text-muted">
+                                    <?php echo date('d M Y, h:i A', strtotime($row['hod_approval_date'])); ?>
+                                </small>
+                            <?php else: ?>
+                                <p class="mb-0 text-muted">Pending Review</p>
                             <?php endif; ?>
-                            <small class="text-muted">
-                                <?php echo date('d M Y, h:i A', strtotime($row['hod_approval_date'])); ?>
-                            </small>
-                        <?php else: ?>
-                            <p class="mb-0 text-muted">Pending Review</p>
-                        <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Dean Review Card -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-3 text-muted">
+                                <i class="fas fa-user-shield me-2"></i>Dean Review 
+                            </h6>
+                            <?php if($row['hod_approval'] && isset($row['dean_approval'])): ?>
+                                <div class="mb-3">
+                                    <p class="mb-1"><small class="fw-medium">Status:</small></p>
+                                    <span class="badge <?php echo $row['dean_approval'] ? 'bg-success' : 'bg-danger'; ?>">
+                                        <?php echo $row['dean_approval'] ? 'Approved' : 'Returned'; ?>
+                                    </span>
+                                </div>
+                                <?php if(isset($row['dean_note']) && $row['dean_note']): ?>
+                                    <div class="mb-3">
+                                        <p class="mb-1"><small class="fw-medium">Note:</small></p>
+                                        <p class="mb-0"><?php echo htmlspecialchars($row['dean_note']); ?></p>
+                                    </div>
+                                <?php endif; ?>
+                                <small class="text-muted">
+                                    <?php 
+                                    if (isset($row['dean_approval_date']) && $row['dean_approval_date']) {
+                                        echo date('d M Y, h:i A', strtotime($row['dean_approval_date']));
+                                    }
+                                    ?>
+                                </small>
+                            <?php else: ?>
+                                <p class="mb-0 text-muted">
+                                    <?php echo $row['hod_approval'] ? 'Pending Review' : 'Awaiting HOD Approval'; ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Dean Review Card -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-3 text-muted">
-                            <i class="fas fa-user-shield me-2"></i>Dean Review 
-                        </h6>
-                        <?php if($row['hod_approval'] && $row['ceo_approval'] !== null): ?>
-                            <div class="mb-3">
-                                <p class="mb-1"><small class="fw-medium">Status:</small></p>
-                                <span class="badge <?php echo $row['ceo_approval'] ? 'bg-success' : 'bg-danger'; ?>">
-                                    <?php echo $row['ceo_approval'] ? 'Approved' : 'Returned'; ?>
-                                </span>
-                            </div>
-                            <?php if($row['ceo_note']): ?>
-                                <div class="mb-3">
-                                    <p class="mb-1"><small class="fw-medium">Note:</small></p>
-                                    <p class="mb-0"><?php echo htmlspecialchars($row['ceo_note']); ?></p>
-                                </div>
-                            <?php endif; ?>
-                            <small class="text-muted">
-                                <?php echo date('d M Y, h:i A', strtotime($row['ceo_approval_date'])); ?>
-                            </small>
-                        <?php else: ?>
-                            <p class="mb-0 text-muted">
-                                <?php echo $row['hod_approval'] ? 'Pending Review' : 'Awaiting HOD Approval'; ?>
-                            </p>
-                        <?php endif; ?>
-                    </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
                 </div>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
-</div>
+<?php endforeach; ?>
 
 <?php foreach ($rows as $row) { ?>
     <div class="modal fade" id="patientModal<?php echo $row['ppw_id']; ?>" tabindex="-1" aria-labelledby="patientModalLabel<?php echo $row['ppw_id']; ?>" aria-hidden="true">

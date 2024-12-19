@@ -1,11 +1,13 @@
 <?php
+// Start session first
+session_start();
+
+// Include database connection before any usage
+include 'dbconnect.php';
+
+// Now include dependencies after database and session are ready
 require_once 'telegram/telegram_handlers.php';
 require_once 'includes/PermissionManager.php';
-
-$permManager = new PermissionManager($conn, $_SESSION['user_id']);
-
-// Start session and enforce HTTPS
-session_start();
 
 // Strict session validation with notification
 if (!isset($_SESSION['email']) || !isset($_SESSION['user_type'])) {
@@ -31,78 +33,76 @@ if ($_SESSION['user_type'] !== 'admin') {
     exit; 
 }
 
-try {
-    // Include database connection
-    include 'dbconnect.php';
-    include 'includes/header.php';
+// Initialize PermissionManager after session and database connection are ready
+$permManager = new PermissionManager($conn, $_SESSION['user_id']);
 
-    // Rate limiting
-    if (!isset($_SESSION['manage_attempts'])) {
+// Check if user has permission to manage users
+try {
+    $permManager->requirePermission('manage_users');
+} catch (Exception $e) {
+    error_log("Permission denied: " . $e->getMessage());
+    header('Location: index.php');
+    exit;
+}
+
+// Rate limiting
+if (!isset($_SESSION['manage_attempts'])) {
+    $_SESSION['manage_attempts'] = 1;
+    $_SESSION['manage_time'] = time();
+} else {
+    if (time() - $_SESSION['manage_time'] < 300) { // 5 minute window
+        if ($_SESSION['manage_attempts'] > 10) {
+            notifySystemError(
+                'Rate Limit Exceeded',
+                "Too many account management attempts by admin: {$_SESSION['email']}",
+                __FILE__,
+                __LINE__
+            );
+            die("Too many requests. Please try again later.");
+        }
+        $_SESSION['manage_attempts']++;
+    } else {
         $_SESSION['manage_attempts'] = 1;
         $_SESSION['manage_time'] = time();
-    } else {
-        if (time() - $_SESSION['manage_time'] < 300) { // 5 minute window
-            if ($_SESSION['manage_attempts'] > 10) {
-                notifySystemError(
-                    'Rate Limit Exceeded',
-                    "Too many account management attempts by admin: {$_SESSION['email']}",
-                    __FILE__,
-                    __LINE__
-                );
-                die("Too many requests. Please try again later.");
+    }
+}
+
+include 'includes/header.php';
+
+// Handle account actions
+if (isset($_POST['action'])) {
+    switch ($_POST['action']) {
+        case 'delete':
+            $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
+            if ($user_id) {
+                $stmt = $conn->prepare("DELETE FROM tbl_users WHERE id = ?");
+                if ($stmt->execute([$user_id])) {
+                    notifySystemError(
+                        'User Deleted',
+                        "Admin {$_SESSION['email']} deleted user ID: $user_id",
+                        __FILE__,
+                        __LINE__
+                    );
+                }
             }
-            $_SESSION['manage_attempts']++;
-        } else {
-            $_SESSION['manage_attempts'] = 1;
-            $_SESSION['manage_time'] = time();
-        }
-    }
-
-    // Handle account actions
-    if (isset($_POST['action'])) {
-        switch ($_POST['action']) {
-            case 'delete':
-                $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
-                if ($user_id) {
-                    $stmt = $conn->prepare("DELETE FROM tbl_users WHERE id = ?");
-                    if ($stmt->execute([$user_id])) {
-                        notifySystemError(
-                            'User Deleted',
-                            "Admin {$_SESSION['email']} deleted user ID: $user_id",
-                            __FILE__,
-                            __LINE__
-                        );
-                    }
+            break;
+            
+        case 'update':
+            // Handle user updates with notification
+            $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
+            if ($user_id) {
+                $stmt = $conn->prepare("UPDATE tbl_users SET status = ? WHERE id = ?");
+                if ($stmt->execute([$_POST['status'], $user_id])) {
+                    notifySystemError(
+                        'User Updated',
+                        "Admin {$_SESSION['email']} updated user ID: $user_id, New status: {$_POST['status']}",
+                        __FILE__,
+                        __LINE__
+                    );
                 }
-                break;
-                
-            case 'update':
-                // Handle user updates with notification
-                $user_id = filter_var($_POST['user_id'], FILTER_VALIDATE_INT);
-                if ($user_id) {
-                    $stmt = $conn->prepare("UPDATE tbl_users SET status = ? WHERE id = ?");
-                    if ($stmt->execute([$_POST['status'], $user_id])) {
-                        notifySystemError(
-                            'User Updated',
-                            "Admin {$_SESSION['email']} updated user ID: $user_id, New status: {$_POST['status']}",
-                            __FILE__,
-                            __LINE__
-                        );
-                    }
-                }
-                break;
-        }
+            }
+            break;
     }
-
-} catch (Exception $e) {
-    error_log("Admin account management error: " . $e->getMessage());
-    notifySystemError(
-        'System Error',
-        $e->getMessage(),
-        __FILE__,
-        __LINE__
-    );
-    die("An error occurred. Please try again later.");
 }
 
 // Set session timeout after 30 minutes of inactivity
@@ -252,7 +252,7 @@ if (!isset($_SESSION['created'])) {
                                     <th scope="row"><?php echo $row['id']; ?></th>
                                     <td><?php echo $row['name']; ?></td>
                                     <td><?php echo $row['email']; ?></td>
-                                    <td><?php echo $row['user_type']; ?></td>
+                                    <td><?php echo ucfirst($row['user_type']); ?></td>
                                     <td>
                                         <a href="admin_manage_account.php?submit=delete&id=<?php echo $row['id']; ?>" class="btn btn-danger">Delete</a>
                                         <button type="button" class="btn btn-primary editUserBtn" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="<?php echo $row['id']; ?>" data-name="<?php echo $row['name']; ?>" data-email="<?php echo $row['email']; ?>" data-user_type="<?php echo $row['user_type']; ?>">Edit</button>
@@ -304,8 +304,9 @@ if (!isset($_SESSION['created'])) {
 </div>
 
 <!-- Edit User Modal -->
+<<!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content border-0 shadow">
             <form action="edit_user.php" method="post">
                 <div class="modal-header border-0">
@@ -315,7 +316,7 @@ if (!isset($_SESSION['created'])) {
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-4">
+                <div class="modal-body">
                     <input type="hidden" name="id" id="editUserId">
                     <div class="mb-4">
                         <label for="editUserName" class="form-label fw-medium">Name</label>
@@ -326,21 +327,32 @@ if (!isset($_SESSION['created'])) {
                         <input type="email" class="form-control form-control-lg shadow-sm" id="editUserEmail" name="email" required>
                     </div>
                     <div class="mb-4">
-                        <label for="editUserPassword" class="form-label fw-medium">Password</label>
-                        <input type="password" class="form-control form-control-lg shadow-sm" id="editUserPassword" name="password">
-                        <small class="text-muted">Leave blank to keep current password</small>
+                        <label for="editUserRole" class="form-label fw-medium">Role</label>
+                        <select class="form-select form-select-lg shadow-sm" id="editUserRole" name="role_id" required>
+                            <?php
+                            $stmt = $conn->query("SELECT * FROM tbl_roles ORDER BY role_name");
+                            while ($role = $stmt->fetch()) {
+                                echo '<option value="' . $role['role_id'] . '">' . 
+                                     htmlspecialchars(ucfirst($role['role_name'])) . 
+                                     '</option>';
+                            }
+                            ?>
+                        </select>
                     </div>
-                    <div class="mb-4">
-                        <label for="edituser_type" class="form-label fw-medium">User Type</label>
-                        <select class="form-select form-select-lg shadow-sm" id="edituser_type" name="user_type" required>
-                            <option value="admin">Admin</option>
-                            <option value="user">Normal User</option>
+                    <div class="mb-4" id="editDepartmentSection">
+                        <label for="editDepartment" class="form-label fw-medium">Department</label>
+                        <select class="form-select form-select-lg shadow-sm" id="editDepartment" name="department">
+                            <option value="">Select department</option>
+                            <option value="Software Engineering">Software Engineering</option>
+                            <option value="Information Systems">Information Systems</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Cybersecurity">Cybersecurity</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -382,7 +394,7 @@ if (!isset($_SESSION['created'])) {
                                 echo '<input class="form-check-input" type="checkbox" name="roles[]" ';
                                 echo 'value="' . $role['role_id'] . '" id="role' . $role['role_id'] . '">';
                                 echo '<label class="form-check-label" for="role' . $role['role_id'] . '">';
-                                echo htmlspecialchars($role['role_name']);
+                                echo htmlspecialchars(ucfirst($role['role_name']));
                                 echo '</label></div>';
                             }
                             ?>
@@ -423,39 +435,69 @@ if (!isset($_SESSION['created'])) {
     <script>
     // Wait for DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
-        const addUserType = document.getElementById('addUserType');
-        if (addUserType) {
-            addUserType.addEventListener('change', function() {
-                const departmentField = document.getElementById('department');
-                const departmentGroup = departmentField?.closest('.mb-3');
+        // Safely get elements with null checks
+        const roleSelect = document.getElementById('addUserRole');
+        const departmentSection = document.getElementById('departmentSection');
+        const departmentSelect = document.getElementById('department');
+
+        // Only add event listener if element exists
+        if (roleSelect && departmentSection && departmentSelect) {
+            roleSelect.addEventListener('change', function() {
+                // Get the selected role text
+                const selectedRole = this.options[this.selectedIndex].text.toLowerCase();
                 
-                if (departmentGroup) {
-                    if (this.value === 'user' || this.value === 'hod') {
-                        departmentGroup.style.display = 'block';
-                        departmentField.required = true;
-                    } else {
-                        departmentGroup.style.display = 'none';
-                        departmentField.required = false;
-                        departmentField.value = '';
-                    }
+                // Show department field only for staff and hod roles
+                if (selectedRole.includes('staff') || selectedRole.includes('hod')) {
+                    departmentSection.style.display = 'block';
+                    departmentSelect.required = true;
+                } else {
+                    departmentSection.style.display = 'none';
+                    departmentSelect.required = false;
+                    departmentSelect.value = '';
                 }
             });
         }
 
-        // Initialize edit user buttons
-        document.querySelectorAll('.editUserBtn').forEach(item => {
-            item.addEventListener('click', event => {
-                const userId = item.getAttribute('data-id');
-                const userName = item.getAttribute('data-name');
-                const userEmail = item.getAttribute('data-email');
-                const userType = item.getAttribute('data-user_type');
-                
-                document.getElementById('editUserId').value = userId;
-                document.getElementById('editUserName').value = userName;
-                document.getElementById('editUserEmail').value = userEmail;
-                document.getElementById('edituser_type').value = userType;
+        // Edit user button handlers
+        const editButtons = document.querySelectorAll('.editUserBtn');
+        if (editButtons) {
+            editButtons.forEach(item => {
+                item.addEventListener('click', event => {
+                    const userId = item.getAttribute('data-id');
+                    const userName = item.getAttribute('data-name');
+                    const userEmail = item.getAttribute('data-email');
+                    const userType = item.getAttribute('data-user_type');
+                    
+                    const editUserId = document.getElementById('editUserId');
+                    const editUserName = document.getElementById('editUserName');
+                    const editUserEmail = document.getElementById('editUserEmail');
+                    const editUserType = document.getElementById('edituser_type');
+
+                    if (editUserId) editUserId.value = userId;
+                    if (editUserName) editUserName.value = userName;
+                    if (editUserEmail) editUserEmail.value = userEmail;
+                    if (editUserType) editUserType.value = userType;
+                });
             });
-        });
+        }
+
+        // User type change handler for department field
+        const addUserType = document.getElementById('addUserType');
+        const department = document.getElementById('department');
+        const departmentGroup = department?.closest('.mb-3');
+
+        if (addUserType && departmentGroup) {
+            addUserType.addEventListener('change', function() {
+                if (this.value === 'user' || this.value === 'hod') {
+                    departmentGroup.style.display = 'block';
+                    department.required = true;
+                } else {
+                    departmentGroup.style.display = 'none';
+                    department.required = false;
+                    department.value = '';
+                }
+            });
+        }
     });
     </script>
 </body>

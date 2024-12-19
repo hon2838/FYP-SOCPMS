@@ -13,15 +13,22 @@ class PermissionManager {
     }
 
     private function loadUserPermissions() {
-        $sql = "SELECT DISTINCT p.permission_name 
-                FROM tbl_permissions p 
-                JOIN tbl_role_permissions rp ON p.permission_id = rp.permission_id 
-                JOIN tbl_user_roles ur ON rp.role_id = ur.role_id 
-                WHERE ur.user_id = ?";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$this->user_id]);
-        $this->permissions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        try {
+            $sql = "SELECT DISTINCT p.permission_name 
+                    FROM tbl_permissions p 
+                    JOIN tbl_role_permissions rp ON p.permission_id = rp.permission_id 
+                    JOIN tbl_user_roles ur ON rp.role_id = ur.role_id 
+                    WHERE ur.user_id = ?";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$this->user_id]);
+            $this->permissions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            error_log("Loaded permissions for user {$this->user_id}: " . implode(', ', $this->permissions));
+        } catch (Exception $e) {
+            error_log("Error loading permissions: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     private function loadUserRoles() {

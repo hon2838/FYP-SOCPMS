@@ -1429,3 +1429,44 @@ main.pt-4 {
         padding: 0.75rem !important;
     }
 }
+
+/* Light mode modal styles */
+[data-theme="light"] .modal-content {
+    background-color: #ffffff;
+}
+
+[data-theme="light"] .modal-content .text-dark {
+    color: #212529 !important;
+}
+
+[data-theme="light"] .modal .table {
+    color: #212529;
+}
+
+[data-theme="light"] .modal .table th {
+    background-color: #f8f9fa;
+    color: #212529;
+    font-weight: 500;
+}
+
+[data-theme="light"] .modal .table td {
+    color: #212529;
+}
+
+/* Keep dark mode styles */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-primary);
+}
+
+[data-theme="dark"] .modal-content .text-dark {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal .table th {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal .table td {
+    color: var(--text-primary);
+}

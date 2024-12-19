@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 18, 2024 at 05:47 PM
+-- Generation Time: Dec 19, 2024 at 02:42 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,31 @@ SET time_zone = "+00:00";
 --
 -- Database: `soc_pms`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbl_audit_log`
+--
+
+CREATE TABLE `tbl_audit_log` (
+  `log_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `details` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tbl_audit_log`
+--
+
+INSERT INTO `tbl_audit_log` (`log_id`, `user_id`, `action`, `details`, `ip_address`, `timestamp`) VALUES
+(1, 3, 'SUBMIT_PAPERWORK', 'Submitted PPW/2024/001', '192.168.1.100', '2024-01-15 01:30:00'),
+(2, 4, 'APPROVE_PAPERWORK', 'Approved PPW/2024/001', '192.168.1.101', '2024-01-16 06:20:00'),
+(3, 5, 'APPROVE_PAPERWORK', 'Approved PPW/2024/001', '192.168.1.102', '2024-01-17 02:15:00'),
+(4, 6, 'SUBMIT_PAPERWORK', 'Submitted PPW/2024/003', '192.168.1.103', '2024-01-22 05:15:00');
 
 -- --------------------------------------------------------
 
@@ -85,7 +110,11 @@ CREATE TABLE `tbl_ppw` (
 
 INSERT INTO `tbl_ppw` (`ppw_id`, `id`, `name`, `session`, `project_name`, `project_date`, `submission_time`, `status`, `ref_number`, `ppw_type`, `document_path`, `admin_note`, `current_stage`, `hod_approval`, `hod_note`, `hod_approval_date`, `dean_approval`, `dean_note`, `dean_approval_date`, `user_email`) VALUES
 (3, 1, 'HON JUN YOON', '1', '1', '2024-12-11', '2024-12-11 03:19:21', NULL, '1', 'Project Proposal', '1733887161_Paper_v5.1_Improved.pdf', NULL, 'hod_review', NULL, NULL, NULL, NULL, NULL, NULL, 'joanchoo2201@hotmail.com'),
-(4, 2, 'Matthew Hon', '12', '12', '2024-12-18', '2024-12-18 15:33:21', NULL, '2', 'Project Proposal', '1734536001_TOPIC_3_3.2.2_ACTIVITY[1].pdf', NULL, 'hod_review', NULL, NULL, NULL, NULL, NULL, NULL, 'honjunyoon@hotmail.com');
+(4, 2, 'Matthew Hon', '12', '12', '2024-12-18', '2024-12-18 15:33:21', NULL, '2', 'Project Proposal', '1734536001_TOPIC_3_3.2.2_ACTIVITY[1].pdf', NULL, 'hod_review', NULL, NULL, NULL, NULL, NULL, NULL, 'honjunyoon@hotmail.com'),
+(5, 3, 'John Staff', '2024/2025', 'AI-Based Learning Platform', '2024-01-15', '2024-01-15 01:30:00', '1', 'PPW/2024/001', 'Project Proposal', 'ai_learning_platform.pdf', NULL, 'approved', 1, 'Well-structured proposal', '2024-01-16 14:20:00', '1', 'Approved with commendation', '2024-01-17 10:15:00', 'john.staff@soc.edu.my'),
+(6, 3, 'John Staff', '2024/2025', 'Cybersecurity Framework', '2024-01-20', '2024-01-20 03:45:00', NULL, 'PPW/2024/002', 'Research Paper', 'cybersecurity_framework.pdf', NULL, 'hod_review', NULL, NULL, NULL, NULL, NULL, NULL, 'john.staff@soc.edu.my'),
+(7, 7, 'Mary Staff', '2024/2025', 'Blockchain Implementation', '2024-01-22', '2024-01-22 05:15:00', NULL, 'PPW/2024/003', 'Technical Report', 'blockchain_impl.pdf', NULL, 'dean_review', 1, 'Comprehensive analysis', '2024-01-23 09:30:00', NULL, NULL, NULL, 'mary.staff@soc.edu.my'),
+(8, 7, 'Mary Staff', '2024/2025', 'IoT Security Protocol', '2024-01-25', '2024-01-25 07:20:00', '1', 'PPW/2024/004', 'Research Paper', 'iot_security.pdf', NULL, 'approved', 1, 'Innovative approach', '2024-01-26 11:45:00', '1', 'Excellent research', '2024-01-27 14:30:00', 'mary.staff@soc.edu.my');
 
 -- --------------------------------------------------------
 
@@ -129,16 +158,16 @@ CREATE TABLE `tbl_role_permissions` (
 --
 
 INSERT INTO `tbl_role_permissions` (`role_id`, `permission_id`, `created_at`) VALUES
-(1, 1, '2024-12-18 16:43:58'),
-(1, 2, '2024-12-18 16:43:58'),
-(1, 3, '2024-12-18 16:43:58'),
-(1, 4, '2024-12-18 16:43:58'),
-(1, 5, '2024-12-18 16:43:58'),
-(1, 6, '2024-12-18 16:43:58'),
-(1, 7, '2024-12-18 16:43:58'),
-(1, 8, '2024-12-18 16:43:58'),
-(1, 9, '2024-12-18 16:43:58'),
-(1, 10, '2024-12-18 16:43:58'),
+(1, 1, '2024-12-19 01:39:51'),
+(1, 2, '2024-12-19 01:39:51'),
+(1, 3, '2024-12-19 01:39:51'),
+(1, 4, '2024-12-19 01:39:51'),
+(1, 5, '2024-12-19 01:39:51'),
+(1, 6, '2024-12-19 01:39:51'),
+(1, 7, '2024-12-19 01:39:51'),
+(1, 8, '2024-12-19 01:39:51'),
+(1, 9, '2024-12-19 01:39:51'),
+(1, 10, '2024-12-19 01:39:51'),
 (2, 1, '2024-12-18 16:43:58'),
 (2, 3, '2024-12-18 16:43:58'),
 (2, 7, '2024-12-18 16:43:58'),
@@ -189,7 +218,12 @@ CREATE TABLE `tbl_users` (
 
 INSERT INTO `tbl_users` (`id`, `name`, `email`, `password`, `user_type`, `register_time`, `active`, `settings`, `department`, `reporting_to`, `phone`, `address`, `last_login`, `last_updated`, `reset_token`, `reset_expires`) VALUES
 (1, 'HON JUN YOON', 'joanchoo2201@hotmail.com', '$2y$10$VEcdi7ITsNseyr9GCb7vKuKy5v3FOSmGo29dRM08lgmBALeT0UDgi', 'admin', '2024-07-25 21:13:36', 1, '{\"theme\":\"light\",\"email_notifications\":true,\"browser_notifications\":false,\"compact_view\":false}', NULL, NULL, NULL, NULL, NULL, '2024-12-18 16:44:15', NULL, NULL),
-(2, 'Matthew Hon', 'honjunyoon@hotmail.com', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'user', '2024-07-25 21:18:15', 1, '{\"theme\":\"light\",\"email_notifications\":true,\"browser_notifications\":false,\"compact_view\":false}', NULL, NULL, NULL, NULL, NULL, '2024-12-18 16:44:15', NULL, NULL);
+(2, 'Matthew Hon', 'honjunyoon@hotmail.com', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'user', '2024-07-25 21:18:15', 1, '{\"theme\":\"light\",\"email_notifications\":true,\"browser_notifications\":false,\"compact_view\":false}', NULL, NULL, NULL, NULL, NULL, '2024-12-18 16:44:15', NULL, NULL),
+(3, 'System Admin', 'admin@soc.edu.my', '$2y$10$VEcdi7ITsNseyr9GCb7vKuKy5v3FOSmGo29dRM08lgmBALeT0UDgi', 'admin', '2024-01-01 08:00:00', 1, '{\"theme\":\"light\",\"email_notifications\":true}', 'IT Department', NULL, NULL, NULL, NULL, '2024-12-19 01:19:20', '59f32e61225bd1a525d10a2c6c6e6c8cdea6435ff25553724b1671eea9e6c948', '2024-12-19 03:19:20'),
+(4, 'John Staff', 'john.staff@soc.edu.my', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'staff', '2024-01-01 08:00:00', 1, '{\"theme\":\"light\",\"email_notifications\":true}', 'Software Engineering', 4, NULL, NULL, NULL, '2024-12-18 16:52:20', NULL, NULL),
+(5, 'Sarah Head', 'sarah.hod@soc.edu.my', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'hod', '2024-01-01 08:00:00', 1, '{\"theme\":\"dark\",\"email_notifications\":true}', 'Software Engineering', 5, NULL, NULL, NULL, '2024-12-18 16:52:20', NULL, NULL),
+(6, 'David Dean', 'david.dean@soc.edu.my', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'dean', '2024-01-01 08:00:00', 1, '{\"theme\":\"light\",\"email_notifications\":true}', 'School of Computing', NULL, NULL, NULL, NULL, '2024-12-18 16:52:20', NULL, NULL),
+(7, 'Mary Staff', 'mary.staff@soc.edu.my', '$2y$10$rw8q9qHhIS4jQOEAhddhEOMHZ4bblaSLiRoip8T9SkBqMRsYq6Kuq', 'staff', '2024-01-01 08:00:00', 1, '{\"theme\":\"light\",\"email_notifications\":true}', 'Cybersecurity', 3, NULL, NULL, NULL, '2024-12-18 16:52:20', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -207,8 +241,28 @@ CREATE TABLE `tbl_user_roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `tbl_user_roles`
+--
+
+INSERT INTO `tbl_user_roles` (`user_id`, `role_id`, `assigned_by`, `assigned_at`, `last_modified_at`, `last_modified_by`) VALUES
+(1, 1, 1, '2024-12-19 01:35:41', '2024-12-19 01:35:41', NULL),
+(2, 5, 1, '2024-12-19 01:35:41', '2024-12-19 01:35:41', NULL),
+(3, 1, 1, '2024-01-01 00:00:00', '2024-12-18 16:52:20', NULL),
+(4, 5, 1, '2024-01-01 00:00:00', '2024-12-18 16:52:20', NULL),
+(5, 4, 1, '2024-01-01 00:00:00', '2024-12-18 16:52:20', NULL),
+(6, 3, 1, '2024-01-01 00:00:00', '2024-12-18 16:52:20', NULL),
+(7, 5, 1, '2024-01-01 00:00:00', '2024-12-18 16:52:20', NULL);
+
+--
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `tbl_audit_log`
+--
+ALTER TABLE `tbl_audit_log`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `tbl_permissions`
@@ -264,6 +318,12 @@ ALTER TABLE `tbl_user_roles`
 --
 
 --
+-- AUTO_INCREMENT for table `tbl_audit_log`
+--
+ALTER TABLE `tbl_audit_log`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `tbl_permissions`
 --
 ALTER TABLE `tbl_permissions`
@@ -273,7 +333,7 @@ ALTER TABLE `tbl_permissions`
 -- AUTO_INCREMENT for table `tbl_ppw`
 --
 ALTER TABLE `tbl_ppw`
-  MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ppw_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `tbl_roles`
@@ -290,6 +350,12 @@ ALTER TABLE `tbl_users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `tbl_audit_log`
+--
+ALTER TABLE `tbl_audit_log`
+  ADD CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `tbl_users` (`id`);
 
 --
 -- Constraints for table `tbl_ppw`

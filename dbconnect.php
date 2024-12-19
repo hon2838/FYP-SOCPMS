@@ -60,28 +60,34 @@ try {
     die('Database connection error. Please try again later.');
 }
 
-// Function to sanitize database inputs
-function sanitizeInput($input) {
-    if (is_array($input)) {
-        return array_map('sanitizeInput', $input);
-    }
-    return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
-}
-
-// Function to validate database connection
-function validateConnection($conn) {
-    try {
-        $conn->query('SELECT 1');
-        return true;
-    } catch (PDOException $e) {
-        error_log("Connection validation failed: " . $e->getMessage());
-        return false;
+// Function to sanitize database inputs - only declare if not exists
+if (!function_exists('sanitizeInput')) {
+    function sanitizeInput($input) {
+        if (is_array($input)) {
+            return array_map('sanitizeInput', $input);
+        }
+        return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
     }
 }
 
-// Function to close database connection
-function closeConnection(&$conn) {
-    $conn = null;
+// Function to validate database connection - only declare if not exists
+if (!function_exists('validateConnection')) {
+    function validateConnection($conn) {
+        try {
+            $conn->query('SELECT 1');
+            return true;
+        } catch (PDOException $e) {
+            error_log("Connection validation failed: " . $e->getMessage());
+            return false;
+        }
+    }
+}
+
+// Function to close database connection - only declare if not exists
+if (!function_exists('closeConnection')) {
+    function closeConnection(&$conn) {
+        $conn = null;
+    }
 }
 
 // Register shutdown function

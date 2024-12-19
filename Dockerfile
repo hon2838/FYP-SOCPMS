@@ -7,11 +7,13 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     zip \
     unzip \
-    git
+    git \
+    libcurl4-openssl-dev
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql
 RUN docker-php-ext-install gd
+RUN docker-php-ext-install curl
 
 # Enable Apache modules
 RUN a2enmod rewrite
@@ -29,7 +31,5 @@ RUN chown -R www-data:www-data /var/www/html \
 # Apache configuration
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# After existing RUN commands
-RUN apt-get update && apt-get install -y \
-    php-curl \
-    && rm -rf /var/lib/apt/lists/*
+# Clean up
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*

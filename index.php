@@ -103,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 // Set session variables
                                 $_SESSION['loggedin'] = true;
-                                $_SESSION['id'] = $row['id'];
+                                $_SESSION['user_id'] = $row['id']; // Add this line
                                 $_SESSION['email'] = $row['email'];
                                 $_SESSION['user_type'] = $row['user_type'];
                                 $_SESSION['name'] = $row['name'];
